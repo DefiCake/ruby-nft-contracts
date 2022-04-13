@@ -1,0 +1,3 @@
+# README
+
+`yarn` && `yarn coverage`
