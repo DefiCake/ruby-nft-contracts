@@ -2,10 +2,9 @@
 pragma solidity >=0.8.0;
 import '../libraries/MintRoleLib.sol';
 import { UsingDiamondOwner } from 'hardhat-deploy/solc_0.8/diamond/UsingDiamondOwner.sol';
+import { IMinterRoleFacet } from '../interfaces/IMinterRoleFacet.sol';
 
-contract MintRoleFacet is UsingDiamondOwner {
-    event MinterSet(address indexed addr, bool isMinter);
-
+contract MintRoleFacet is UsingDiamondOwner, IMinterRoleFacet {
     function setMinter(address addr, bool isMinter) external onlyOwner {
         MintRoleLib.Storage().isMinter[addr] = isMinter;
         emit MinterSet(addr, isMinter);
