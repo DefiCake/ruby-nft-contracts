@@ -7,7 +7,7 @@ import { ERC20Fixture } from './fixtures/ERC20Fixture'
 import { assertTransactionFailed } from './utils/assertTransactionFailed'
 
 const ERROR_DISABLED = 'DISABLED'
-describe.only('RubyToken', () => {
+describe('RubyToken', () => {
   let erc20: ERC20
   let erc721: ERC721Mock
   let deployer: SignerWithAddress
@@ -78,6 +78,13 @@ describe.only('RubyToken', () => {
       await erc721.connect(alice).transferFrom(alice.address, bob.address, 0)
       expect(await token.balanceOf(alice.address)).to.be.equal(parseEther('1000'))
       expect(await token.balanceOf(bob.address)).to.be.equal(parseEther('1000'))
+    })
+  })
+
+  describe('totalSupply()', () => {
+    it('correctly prints 300_000_000 tokens', async () => {
+      const supply = 300_000_000
+      expect(await erc20.totalSupply()).to.be.equal(parseEther(supply.toString()))
     })
   })
 
