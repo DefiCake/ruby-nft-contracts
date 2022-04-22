@@ -2,11 +2,13 @@
 pragma solidity >=0.8.0;
 import '../libraries/ERC721Lib.sol';
 import { UsingMintRole, MintRoleLib } from '../libraries/MintRoleLib.sol';
+import '../../interfaces/IBeforeTokenTransfer.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 
 /// @notice Modern, minimalist, and gas efficient ERC-721 implementation. Based on Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC721.sol)
-/// @author EIP2325 implementation by DefiCake (https://github.com/DefiCake), based on solmate
+/// @author EIP2325 implementation by DefiCake (https://github.com/DefiCake), based on solmate. Additional features:
+///             - onBeforeTokenTransfer hook
 
 contract ERC721Facet is UsingMintRole {
     /*//////////////////////////////////////////////////////////////
@@ -109,6 +111,8 @@ contract ERC721Facet is UsingMintRole {
             'NOT_AUTHORIZED'
         );
 
+        IBeforeTokenTransfer(address(this)).beforeTokenTransfer(from, to, id);
+
         // Underflow of the sender's balance is impossible because we check for
         // ownership above and the recipient's balance can't realistically overflow.
         unchecked {
@@ -196,6 +200,8 @@ contract ERC721Facet is UsingMintRole {
         ERC721Lib.ERC721Storage storage s = ERC721Lib.Storage();
 
         require(s._ownerOf[id] == address(0), 'ALREADY_MINTED');
+
+        IBeforeTokenTransfer(address(this)).beforeTokenTransfer(address(0), to, id);
 
         // Counter overflow is incredibly unrealistic.
         unchecked {

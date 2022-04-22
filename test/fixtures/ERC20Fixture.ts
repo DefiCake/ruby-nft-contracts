@@ -1,5 +1,5 @@
 import { deployments } from 'hardhat'
-import { ERC721Mock__factory, ERC20__factory } from '../../typechain-types'
+import { ERC721Mock__factory, OZERC20__factory } from '../../typechain-types'
 
 export const ERC20Fixture = deployments.createFixture(async ({ deployments, ethers }) => {
   const [deployer, alice, bob, carol, dave, mallory] = await ethers.getSigners()
@@ -10,7 +10,7 @@ export const ERC20Fixture = deployments.createFixture(async ({ deployments, ethe
   } = await deployments.fixture()
 
   const erc721 = ERC721Mock__factory.connect(erc721MockAddress, deployer)
-  const erc20 = ERC20__factory.connect(erc20Address, deployer)
+  const erc20 = OZERC20__factory.connect(erc20Address, deployer)
 
   return { erc721, erc20, deployer, alice, bob, carol, dave, mallory }
 })

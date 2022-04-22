@@ -37,6 +37,29 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      /**
+       * From https://github.com/0xSplits/splits-contracts/blob/0bdc1544447668e135d5ac9063cafd2d7337d748/hardhat.config.ts
+       * These versions compile 0xSplits contracts, do not modify.
+       */
+      {
+        version: '0.8.4',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+            // runs: 999999,
+          },
+        },
+      },
+      {
+        version: '0.5.17',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   networks: {

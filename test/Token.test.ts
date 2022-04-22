@@ -2,13 +2,13 @@ import { AddressZero } from '@ethersproject/constants'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { parseEther } from 'ethers/lib/utils'
-import { ERC20, ERC721Mock, RubyToken, RubyToken__factory } from '../typechain-types'
+import { ERC721Mock, OZERC20, RubyToken, RubyToken__factory } from '../typechain-types'
 import { ERC20Fixture } from './fixtures/ERC20Fixture'
 import { assertTransactionFailed } from './utils/assertTransactionFailed'
 
 const ERROR_DISABLED = 'DISABLED'
 describe('RubyToken', () => {
-  let erc20: ERC20
+  let erc20: OZERC20
   let erc721: ERC721Mock
   let deployer: SignerWithAddress
   let alice: SignerWithAddress

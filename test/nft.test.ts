@@ -1,7 +1,6 @@
 // Tests based on https://github.com/OpenZeppelin/openzeppelin-contracts/blob/742e85be7c08dff21410ba4aa9c60f6a033befb8/test/token/ERC721/ERC721.behavior.js
 
 import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { IRuby } from '../typechain-types'
 import { ERC721Fixture } from './fixtures/ERC721Fixture'
@@ -12,7 +11,6 @@ import { ERC721ReceiverMock } from '../typechain-types/ERC721ReceiverMock'
 import { ERC721ReceiverMock__factory } from '../typechain-types/factories/ERC721ReceiverMock__factory'
 import { assertTransactionFailed } from './utils/assertTransactionFailed'
 
-chai.use(chaiAsPromised)
 const { expect } = chai
 
 const Error: any = ['None', 'RevertWithMessage', 'RevertWithoutMessage', 'Panic'].reduce(
