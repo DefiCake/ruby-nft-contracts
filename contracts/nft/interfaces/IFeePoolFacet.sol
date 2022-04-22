@@ -2,5 +2,15 @@
 pragma solidity ^0.8.13;
 
 interface IFeePoolFacet {
-    function accrueRewards() external returns (uint256 accruedAmount);
+    function accrueRoyalties() external returns (uint256 accruedRoyalties);
+
+    function withdrawRoyalties() external returns (uint256);
+
+    function beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    function pool() external view returns (address);
 }

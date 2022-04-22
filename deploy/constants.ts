@@ -1,6 +1,7 @@
 export const NFT_CONTRACT_NAME = 'Ruby'
 export const ERC20_CONTRACT_NAME = 'RubyToken'
 export const SPLITTER_V1_CONTRACT_NAME = 'OwnedSplitterV1'
+export const BOOMER_CONTRACT_NAME = 'Boomer'
 
 export const NFT_FACET_ERC721_NAME = 'ERC721Facet'
 export const NFT_FACET_MINTER_ROLE_NAME = 'MintRoleFacet'
