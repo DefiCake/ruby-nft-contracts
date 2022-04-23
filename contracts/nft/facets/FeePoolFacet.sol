@@ -3,11 +3,12 @@ pragma solidity >=0.8.0;
 import '../libraries/ERC721Lib.sol';
 import '../libraries/FeePoolLib.sol';
 import '../../interfaces/IPaymentSplitter.sol';
+import '../interfaces/IFeePoolFacet.sol';
 import '../utils/UsingDiamondSelfCall.sol';
 
 import 'hardhat/console.sol';
 
-contract FeePoolFacet is UsingDiamondSelfCall {
+contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
     uint256 private constant PRECISION = 1e18;
     address public immutable pool;
 
@@ -31,19 +32,23 @@ contract FeePoolFacet is UsingDiamondSelfCall {
                 unchecked {
                     accruedRoyalties = currentBalance - lastWeiCheckpoint;
                 }
-                s.globalEarnedWei += accruedRoyalties;
-                s.accruedWeiPerShare = (s.globalEarnedWei * PRECISION) / totalSupply;
+                uint256 globalEarnedWei = s.globalEarnedWei + accruedRoyalties;
+                s.globalEarnedWei = globalEarnedWei;
+                uint256 accruedWeiPerShare = (globalEarnedWei * PRECISION) / totalSupply;
+                s.accruedWeiPerShare = accruedWeiPerShare;
+                s.lastWeiCheckpoint = currentBalance;
+                emit AccruedRoyalties(globalEarnedWei, accruedWeiPerShare, currentBalance);
             }
         }
     }
 
     function withdrawRoyalties() external returns (uint256) {
         accrueRoyalties();
-        FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
+        uint256 withdrawableWei = _updateLockerFor(msg.sender);
 
-        uint256 withdrawableWei = s.lockers[msg.sender].withdrawableWei;
         require(withdrawableWei > 0, 'NO_REWARD');
 
+        FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
         s.lockers[msg.sender].withdrawableWei = 0;
         s.lastWeiCheckpoint -= withdrawableWei;
 
@@ -69,15 +74,21 @@ contract FeePoolFacet is UsingDiamondSelfCall {
         }
     }
 
-    function _updateLockerFor(address addr) internal {
-        uint256 balance = ERC721Lib.Storage()._balanceOf[addr];
+    function _updateLockerFor(address addr) internal returns (uint256) {
+        uint256 shares = ERC721Lib.Storage()._balanceOf[addr];
 
         FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
 
-        uint256 earnt = (s.accruedWeiPerShare * balance) / PRECISION;
+        uint256 earnt = (s.accruedWeiPerShare * shares) / PRECISION;
         uint256 debt = s.lockers[addr].debtWei;
+        uint256 withdrawableWei = earnt - debt;
+        uint256 newDebtWei = s.globalEarnedWei;
 
-        s.lockers[addr].withdrawableWei = earnt - debt;
-        s.lockers[addr].debtWei = s.globalEarnedWei;
+        s.lockers[addr].withdrawableWei = withdrawableWei;
+        s.lockers[addr].debtWei = newDebtWei;
+
+        emit LockerUpdated(addr, earnt, debt, withdrawableWei, newDebtWei);
+
+        return withdrawableWei;
     }
 }
