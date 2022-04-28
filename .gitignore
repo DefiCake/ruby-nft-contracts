@@ -6,5 +6,6 @@ artifacts/
 coverage*
 .env
 .vscode
-deployments
+deployments/*
 !deployments/mainnet
+!deployments/rinkeby

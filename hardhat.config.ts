@@ -18,7 +18,7 @@ let networks: NetworksUserConfig = {}
 
 if (process.env.GOERLI) {
   const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : undefined
-  networks[`${process.env.GOERLI.toLowerCase()}`] = {
+  networks[`goerli`] = {
     url: process.env.GOERLI,
     accounts,
   }
@@ -26,9 +26,10 @@ if (process.env.GOERLI) {
 
 if (process.env.RINKEBY) {
   const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : undefined
-  networks[`${process.env.RINKEBY.toLowerCase()}`] = {
+  networks[`rinkeby`] = {
     url: process.env.RINKEBY,
     accounts,
+    deploy: ['./deploy/rinkeby'],
   }
 }
 
