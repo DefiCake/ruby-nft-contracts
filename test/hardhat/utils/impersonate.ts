@@ -1,8 +1,8 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { parseEther } from 'ethers/lib/utils'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { BOOMER_CONTRACT_NAME } from '../../deploy/constants'
-import { Boomer } from '../../typechain-types'
+import { BOOMER_CONTRACT_NAME } from '../../../deploy/constants'
+import { Boomer } from '../../../typechain-types'
 
 export async function impersonate(
   hre: HardhatRuntimeEnvironment,

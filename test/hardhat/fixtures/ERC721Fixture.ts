@@ -1,5 +1,5 @@
 import { deployments } from 'hardhat'
-import { IRuby__factory, MockMinter__factory } from '../../typechain-types'
+import { IRuby__factory, MockMinter__factory } from '../../../typechain-types'
 
 export const ERC721Fixture = deployments.createFixture(async ({ deployments, ethers }) => {
   const fixture = await deployments.fixture()

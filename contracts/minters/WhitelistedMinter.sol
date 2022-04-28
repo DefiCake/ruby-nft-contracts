@@ -17,8 +17,9 @@ contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
     constructor(
         uint256 limit,
         address _mintable,
-        address _oracle
-    ) PayableChainlinkMinter(_mintable, _oracle) {
+        address _oracle,
+        uint256 _price
+    ) PayableChainlinkMinter(_mintable, _oracle, _price) {
         LIMIT = limit;
     }
 

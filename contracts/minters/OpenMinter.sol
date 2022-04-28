@@ -11,7 +11,11 @@ contract OpenMinter is Ownable, PayableChainlinkMinter {
 
     mapping(address => bool) public verified;
 
-    constructor(address _mintable, address _oracle) PayableChainlinkMinter(_mintable, _oracle) {}
+    constructor(
+        address _mintable,
+        address _oracle,
+        uint256 _price
+    ) PayableChainlinkMinter(_mintable, _oracle, _price) {}
 
     function mint(bytes32[] calldata, bytes32) external payable {
         _mint(msg.sender);

@@ -14,24 +14,6 @@ import { HardhatUserConfig, NetworksUserConfig } from 'hardhat/types'
 
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY
 
-let networks: NetworksUserConfig = {}
-
-if (process.env.GOERLI) {
-  const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : undefined
-  networks[`${process.env.GOERLI.toLowerCase()}`] = {
-    url: process.env.GOERLI,
-    accounts,
-  }
-}
-
-if (process.env.RINKEBY) {
-  const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : undefined
-  networks[`${process.env.RINKEBY.toLowerCase()}`] = {
-    url: process.env.RINKEBY,
-    accounts,
-  }
-}
-
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   solidity: {
@@ -72,11 +54,12 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      deploy: ['./deploy/hardhat'],
+      deploy: ['./deploy/rinkeby'],
+      forking: {
+        url: process.env.RINKEBY!,
+      },
       allowUnlimitedContractSize: true,
     },
-    localhost: {},
-    ...networks,
   },
   etherscan: {
     // Your API key for Etherscan
@@ -87,7 +70,7 @@ const config: HardhatUserConfig = {
     deployer: 0,
   },
   paths: {
-    tests: 'test/hardhat',
+    tests: 'test/rinkeby-integration',
   },
 }
 

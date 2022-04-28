@@ -2,13 +2,13 @@
 
 import chai from 'chai'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { IRuby } from '../typechain-types'
+import { IRuby } from '../../typechain-types'
 import { ERC721Fixture } from './fixtures/ERC721Fixture'
 import { BigNumber, ContractTransaction, Wallet } from 'ethers'
 import { AddressZero } from '@ethersproject/constants'
 import { waffle } from 'hardhat'
-import { ERC721ReceiverMock } from '../typechain-types/ERC721ReceiverMock'
-import { ERC721ReceiverMock__factory } from '../typechain-types/factories/ERC721ReceiverMock__factory'
+import { ERC721ReceiverMock } from '../../typechain-types/ERC721ReceiverMock'
+import { ERC721ReceiverMock__factory } from '../../typechain-types/factories/ERC721ReceiverMock__factory'
 import { assertTransactionFailed } from './utils/assertTransactionFailed'
 
 const { expect } = chai

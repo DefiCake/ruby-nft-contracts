@@ -1,5 +1,5 @@
 import { deployments } from 'hardhat'
-import { ERC721Mock__factory, OZERC20__factory } from '../../typechain-types'
+import { ERC721Mock__factory, OZERC20__factory } from '../../../typechain-types'
 
 export const ERC20Fixture = deployments.createFixture(async ({ deployments, ethers }) => {
   const [deployer, alice, bob, carol, dave, mallory] = await ethers.getSigners()

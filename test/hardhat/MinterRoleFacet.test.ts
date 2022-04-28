@@ -1,6 +1,6 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
-import { IRuby } from '../typechain-types'
+import { IRuby } from '../../typechain-types'
 import { ERC721Fixture } from './fixtures/ERC721Fixture'
 import { assertTransactionFailed } from './utils/assertTransactionFailed'
 

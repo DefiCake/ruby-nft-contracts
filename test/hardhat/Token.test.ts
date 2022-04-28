@@ -2,7 +2,7 @@ import { AddressZero } from '@ethersproject/constants'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { parseEther } from 'ethers/lib/utils'
-import { ERC721Mock, OZERC20, RubyToken, RubyToken__factory } from '../typechain-types'
+import { ERC721Mock, OZERC20, RubyToken, RubyToken__factory } from '../../typechain-types'
 import { ERC20Fixture } from './fixtures/ERC20Fixture'
 import { assertTransactionFailed } from './utils/assertTransactionFailed'
 

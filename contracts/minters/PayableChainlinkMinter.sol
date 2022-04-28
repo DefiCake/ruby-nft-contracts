@@ -8,27 +8,38 @@ import '../interfaces/Mintable.sol';
 
 contract PayableChainlinkMinter {
     uint8 private constant ETH_DECIMALS = 18;
-    uint256 private constant PRICE = 1000 * 1e18;
+    uint8 private immutable PRICE_DECIMALS;
+    uint256 public immutable PRICE;
 
-    address immutable mintable;
-    address immutable oracle;
+    address public immutable mintable;
+    address public immutable oracle;
 
-    constructor(address _mintable, address _oracle) {
+    constructor(
+        address _mintable,
+        address _oracle,
+        uint256 _price
+    ) {
         mintable = _mintable;
         oracle = _oracle;
+        PRICE_DECIMALS = AggregatorV3Interface(oracle).decimals();
+        require(PRICE_DECIMALS <= ETH_DECIMALS, 'LINK_INVALID_DECIMALS');
+        PRICE = _price * 10**PRICE_DECIMALS;
     }
 
     modifier paysMint(uint256 amount) {
-        uint256 priceDecimals = AggregatorV3Interface(oracle).decimals();
-        require(priceDecimals <= ETH_DECIMALS, 'LINK_INVALID_DECIMALS');
-        (, int256 unscaledPrice, , , ) = AggregatorV3Interface(oracle).latestRoundData();
-        require(unscaledPrice > int256(0), 'LINK_PRICE_NEGATIVE');
+        (, int256 price, , , ) = AggregatorV3Interface(oracle).latestRoundData();
+        require(price > int256(0), 'LINK_PRICE_NEGATIVE');
 
-        uint256 mintCost = (uint256(unscaledPrice) * 10**(ETH_DECIMALS - priceDecimals));
+        uint256 mintCost = ((amount * PRICE) * 10**ETH_DECIMALS) / (uint256(price));
+
         require(mintCost <= msg.value, 'MINT_INSUFFICIENT_VALUE');
         _;
 
-        uint256 remainder = msg.value - mintCost;
+        uint256 remainder;
+        unchecked {
+            remainder = msg.value - mintCost;
+        }
+
         if (remainder > 0) {
             SafeTransferLib.safeTransferETH(msg.sender, remainder);
         }

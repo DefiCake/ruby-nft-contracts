@@ -8,9 +8,12 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "test": "yarn compile && hardhat test --no-compile",
+    "test:rinkeby": "yarn compile && hardhat --config hardhat.test.rinkeby.ts test --no-compile",
     "coverage": "yarn build && hardhat coverage --temp artifacts",
     "dev": "nodemon",
-    "prettify": "prettier --write \"./**/*.{ts,sol}\""
+    "dev:rinkeby": "nodemon --config nodemon.rinkeby.json",
+    "prettify": "prettier --write \"./**/*.{ts,sol}\"",
+    "deploy": "hardhat deploy"
   },
   "repository": {
     "type": "git"
