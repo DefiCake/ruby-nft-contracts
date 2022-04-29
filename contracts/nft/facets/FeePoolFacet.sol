@@ -74,6 +74,7 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
         }
     }
 
+    /// TODO apply short circuit to avoid update if not necessary
     function _updateLockerFor(address addr) internal returns (uint256) {
         uint256 shares = ERC721Lib.Storage()._balanceOf[addr];
 
@@ -90,5 +91,9 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
         emit LockerUpdated(addr, earnt, debt, withdrawableWei, newDebtWei);
 
         return withdrawableWei;
+    }
+
+    function getCurrentCheckpoint() external view returns (uint256) {
+        return FeePoolLib.Storage().lastWeiCheckpoint;
     }
 }
