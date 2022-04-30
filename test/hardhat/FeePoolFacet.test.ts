@@ -14,11 +14,12 @@ const { ethers } = hre
 const ONE_ETH = parseEther('1')
 const PRECISION_SCALE = parseEther('1')
 
-describe('FeePoolFacet', () => {
+describe.only('FeePoolFacet', () => {
   let ruby: IRuby
   let splitter: OwnedSplitterV1
   let deployer: SignerWithAddress
   let alice: SignerWithAddress
+  let bob: SignerWithAddress
   let mallory: SignerWithAddress
   let minter: MockMinter
 
@@ -33,7 +34,7 @@ describe('FeePoolFacet', () => {
   })
 
   beforeEach('fixture', async () => {
-    ;({ ruby, splitter, deployer, minter, alice, mallory } = await FeePoolFixture())
+    ;({ ruby, splitter, deployer, minter, alice, bob, mallory } = await FeePoolFixture())
   })
 
   describe('initialization', () => {
@@ -55,7 +56,25 @@ describe('FeePoolFacet', () => {
       )
     })
 
-    it('updates user balance')
+    it('updates user balance', async () => {
+      const firstTokenId = 1
+      const secondTokenId = 2
+      const value = ONE_ETH
+      await ruby.connect(deployer).mint(alice.address, firstTokenId)
+      await deployer.sendTransaction({ to: ruby.address, value })
+      await ruby.connect(deployer).mint(bob.address, secondTokenId) // this should accrue royalties
+      await deployer.sendTransaction({ to: ruby.address, value })
+
+      const tx = await ruby.connect(alice).transferFrom(alice.address, bob.address, firstTokenId)
+
+      const aliceEarnt = value.add(value.div(2))
+      const bobEarnt = value.div(2)
+      const totalEarnt = aliceEarnt.add(bobEarnt)
+
+      // address indexed user, uint256 earnt, uint256 debt, uint256 withdrawableWei, uint256 newDebtWei
+      await expect(tx).to.emit(ruby, 'LockerUpdated').withArgs(alice.address, aliceEarnt, 0, aliceEarnt, totalEarnt)
+      await expect(tx).to.emit(ruby, 'LockerUpdated').withArgs(bob.address, bobEarnt, aliceEarnt, bobEarnt, totalEarnt)
+    })
   })
 
   describe('accrueRoyalties', () => {

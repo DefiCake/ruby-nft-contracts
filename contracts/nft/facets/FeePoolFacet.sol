@@ -33,8 +33,9 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
                     accruedRoyalties = currentBalance - lastWeiCheckpoint;
                 }
                 uint256 globalEarnedWei = s.globalEarnedWei + accruedRoyalties;
+                uint256 accruedWeiPerShare = s.accruedWeiPerShare + (accruedRoyalties * PRECISION) / totalSupply;
+
                 s.globalEarnedWei = globalEarnedWei;
-                uint256 accruedWeiPerShare = (globalEarnedWei * PRECISION) / totalSupply;
                 s.accruedWeiPerShare = accruedWeiPerShare;
                 s.lastWeiCheckpoint = currentBalance;
                 emit AccruedRoyalties(globalEarnedWei, accruedWeiPerShare, currentBalance);
@@ -65,13 +66,9 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
         accrueRoyalties();
 
         // For mint cases
-        if (from != address(0)) {
-            _updateLockerFor(from);
-        }
-
-        if (to != address(0)) {
-            _updateLockerFor(to);
-        }
+        if (from != address(0)) _updateLockerFor(from);
+        // For burn cases
+        if (to != address(0)) _updateLockerFor(to);
     }
 
     /// TODO apply short circuit to avoid update if not necessary
