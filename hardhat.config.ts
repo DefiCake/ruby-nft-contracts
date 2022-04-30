@@ -90,6 +90,9 @@ const config: HardhatUserConfig = {
   paths: {
     tests: 'test/hardhat',
   },
+  mocha: {
+    bail: true,
+  },
 }
 
 export default config
