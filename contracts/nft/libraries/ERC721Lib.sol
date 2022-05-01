@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.0;
 
 library ERC721Lib {
     bytes32 constant STORAGE_POSITION = keccak256('eth.rubynft.storage');

@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   })
 
   const owner = await nft.getMintRoleAdmin()
-  await execute(NFT_CONTRACT_NAME, { from: owner, to: nft.address }, 'setMinter', minterAddress, true)
+  await execute(NFT_CONTRACT_NAME, { from: owner, to: nft.address, log: true }, 'setMinter', minterAddress, true)
 }
 
 export default func

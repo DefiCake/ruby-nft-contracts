@@ -1,0 +1,2 @@
+import './reserveENS'
+import './setENSResolution'

@@ -9,6 +9,7 @@ import 'solidity-coverage'
 import 'hardhat-deploy'
 import 'hardhat-tracer'
 import '@atixlabs/hardhat-time-n-mine'
+import './tasks'
 
 import { HardhatUserConfig, NetworksUserConfig } from 'hardhat/types'
 
@@ -38,7 +39,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.13',
+        version: '0.8.3',
         settings: {
           optimizer: {
             enabled: true,
@@ -89,6 +90,9 @@ const config: HardhatUserConfig = {
   },
   paths: {
     tests: 'test/hardhat',
+  },
+  mocha: {
+    bail: true,
   },
 }
 

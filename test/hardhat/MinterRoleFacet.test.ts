@@ -39,7 +39,7 @@ describe('MinterRoleFacet', () => {
     })
   })
 
-  describe('getMinter()', () => {
+  describe('getMinter', () => {
     it('correctly returns mint authorization', async () => {
       expect(await ruby.getMinter(alice.address)).to.be.equal(false)
 
@@ -50,5 +50,9 @@ describe('MinterRoleFacet', () => {
       await ruby.connect(deployer).setMinter(alice.address, false)
       expect(await ruby.getMinter(alice.address)).to.be.equal(false)
     })
+  })
+
+  it('getMintRole', async () => {
+    expect(await ruby.getMintRoleAdmin()).to.be.equal(deployer.address)
   })
 })

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity ^0.8.0;
 import '../libraries/ERC721Lib.sol';
 import { UsingMintRole, MintRoleLib } from '../libraries/MintRoleLib.sol';
 import '../../interfaces/IBeforeTokenTransfer.sol';
@@ -177,17 +177,6 @@ contract ERC721Facet is UsingMintRole {
         bytes calldata data
     ) external onlyMinter {
         _safeMint(to, id, data);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                              ERC165 LOGIC
-    //////////////////////////////////////////////////////////////*/
-
-    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
-        return
-            interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
-            interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
-            interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
     }
 
     /*//////////////////////////////////////////////////////////////

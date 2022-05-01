@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity >=0.5.0;
 
 interface IFeePoolFacet {
     event AccruedRoyalties(uint256 globalEarnedWei, uint256 accruedWeiPerShare, uint256 balance);
@@ -17,4 +17,13 @@ interface IFeePoolFacet {
     ) external;
 
     function pool() external view returns (address);
+
+    function getCurrentFeeGlobals()
+        external
+        view
+        returns (
+            uint256 globalEarnedWei,
+            uint256 lastWeiCheckpoint,
+            uint256 accruedWeiPerShare
+        );
 }
