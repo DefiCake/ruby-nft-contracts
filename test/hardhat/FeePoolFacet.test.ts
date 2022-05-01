@@ -14,7 +14,7 @@ const { ethers } = hre
 const ONE_ETH = parseEther('1')
 const PRECISION_SCALE = parseEther('1')
 
-describe.only('FeePoolFacet', () => {
+describe('FeePoolFacet', () => {
   let ruby: IRuby
   let splitter: OwnedSplitterV1
   let deployer: SignerWithAddress
@@ -78,9 +78,9 @@ describe.only('FeePoolFacet', () => {
       await expect(tx)
         .to.emit(ruby, 'LockerUpdated')
         .withArgs(alice.address, aliceExpectedEarnings, 0, aliceExpectedEarnings, expectedDebt)
-      // await expect(tx)
-      //   .to.emit(ruby, 'LockerUpdated')
-      //   .withArgs(bob.address, earntWeiPerShare, bobCheckpoint, earntWeiPerShare.sub(bobCheckpoint), totalEarnt)
+      await expect(tx)
+        .to.emit(ruby, 'LockerUpdated')
+        .withArgs(bob.address, bobExpectedEarnings, ONE_ETH.mul(SCALE), bobExpectedEarnings, expectedDebt)
     })
   })
 

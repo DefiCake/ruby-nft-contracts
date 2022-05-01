@@ -93,25 +93,6 @@ contract FeePoolFacet is DivByNonZero, UsingDiamondSelfCall, IFeePoolFacet {
         return withdrawableWei;
     }
 
-    // /// TODO apply short circuit to avoid update if not necessary
-    // function _updateLockerFor(address addr) internal returns (uint256) {
-    //     uint256 shares = ERC721Lib.Storage()._balanceOf[addr];
-
-    //     FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
-
-    //     uint256 earnt = (s.accruedWeiPerShare * shares) / PRECISION;
-    //     uint256 debt = s.lockers[addr].debtWei;
-    //     uint256 withdrawableWei = earnt - debt;
-    //     uint256 newDebtWei = s.globalEarnedWei;
-
-    //     s.lockers[addr].withdrawableWei = withdrawableWei;
-    //     s.lockers[addr].debtWei = newDebtWei;
-
-    //     emit LockerUpdated(addr, earnt, debt, withdrawableWei, newDebtWei);
-
-    //     return withdrawableWei;
-    // }
-
     function getCurrentFeeGlobals()
         external
         view
