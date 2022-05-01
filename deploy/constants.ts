@@ -17,6 +17,8 @@ export const MOCK_ERC721_CONTRACT_NAME = 'ERC721Mock'
 
 export const OPEN_MINTER_CONTRACT_NAME = 'OpenMinter'
 
+export const PUBLIC_RESOLVER_CONTRACT_NAME = 'PublicResolver'
+
 export const SCALE = parseEther('1') // 1e18 scale for precision improvement
 export const ERC2891_FEE_SHARE = SCALE.mul(7).div(100)
 
@@ -55,3 +57,6 @@ export const CHAINLINK_TESTNET_DATA: { [chain: string]: ChainlinkTestnetData } =
     chainlinkEthPriceFeed: '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e',
   },
 }
+
+export const ENS_ADDRESS = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
+export const ENS_PROJECT_PREFIX = 'ruby'

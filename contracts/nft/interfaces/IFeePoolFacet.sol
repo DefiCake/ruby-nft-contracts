@@ -18,5 +18,12 @@ interface IFeePoolFacet {
 
     function pool() external view returns (address);
 
-    function getCurrentCheckpoint() external view returns (uint256);
+    function getCurrentFeeGlobals()
+        external
+        view
+        returns (
+            uint256 globalEarnedWei,
+            uint256 lastWeiCheckpoint,
+            uint256 accruedWeiPerShare
+        );
 }

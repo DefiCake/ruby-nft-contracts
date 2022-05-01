@@ -8,7 +8,6 @@ import '../interfaces/Mintable.sol';
 
 contract PayableChainlinkMinter {
     uint8 private constant ETH_DECIMALS = 18;
-    uint8 private immutable PRICE_DECIMALS;
     uint256 public immutable PRICE;
 
     address public immutable mintable;
@@ -21,9 +20,7 @@ contract PayableChainlinkMinter {
     ) {
         mintable = _mintable;
         oracle = _oracle;
-        PRICE_DECIMALS = AggregatorV3Interface(oracle).decimals();
-        require(PRICE_DECIMALS <= ETH_DECIMALS, 'LINK_INVALID_DECIMALS');
-        PRICE = _price * 10**PRICE_DECIMALS;
+        PRICE = _price * 10**8; // 8 decimals in standard USD/ETH LINK Oracle
     }
 
     modifier paysMint(uint256 amount) {

@@ -5,18 +5,19 @@ import '../libraries/FeePoolLib.sol';
 import '../../interfaces/IPaymentSplitter.sol';
 import '../interfaces/IFeePoolFacet.sol';
 import '../utils/UsingDiamondSelfCall.sol';
+import '../../misc/DivByNonZero.sol';
 
 import 'hardhat/console.sol';
 
-contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
+contract FeePoolFacet is DivByNonZero, UsingDiamondSelfCall, IFeePoolFacet {
     uint256 private constant PRECISION = 1e18;
-    address public immutable pool;
+    address public immutable override pool;
 
     constructor(address _pool) {
         pool = _pool;
     }
 
-    function accrueRoyalties() public returns (uint256 accruedRoyalties) {
+    function accrueRoyalties() public override returns (uint256 accruedRoyalties) {
         uint256 totalSupply = ERC721Lib.Storage().totalSupply;
 
         if (totalSupply > 0) {
@@ -33,17 +34,19 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
                     accruedRoyalties = currentBalance - lastWeiCheckpoint;
                 }
                 uint256 globalEarnedWei = s.globalEarnedWei + accruedRoyalties;
-                uint256 accruedWeiPerShare = s.accruedWeiPerShare + (accruedRoyalties * PRECISION) / totalSupply;
+                uint256 accruedWeiPerShare = s.accruedWeiPerShare +
+                    divByNonZero(accruedRoyalties * PRECISION, totalSupply);
 
                 s.globalEarnedWei = globalEarnedWei;
                 s.accruedWeiPerShare = accruedWeiPerShare;
                 s.lastWeiCheckpoint = currentBalance;
+
                 emit AccruedRoyalties(globalEarnedWei, accruedWeiPerShare, currentBalance);
             }
         }
     }
 
-    function withdrawRoyalties() external returns (uint256) {
+    function withdrawRoyalties() external override returns (uint256) {
         accrueRoyalties();
         uint256 withdrawableWei = _updateLockerFor(msg.sender);
 
@@ -62,7 +65,7 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
         address from,
         address to,
         uint256
-    ) external onlyDiamond {
+    ) external override onlyDiamond {
         accrueRoyalties();
 
         // For mint cases
@@ -77,20 +80,49 @@ contract FeePoolFacet is UsingDiamondSelfCall, IFeePoolFacet {
 
         FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
 
-        uint256 earnt = (s.accruedWeiPerShare * shares) / PRECISION;
+        uint256 accruedWeiPerShare = s.accruedWeiPerShare;
         uint256 debt = s.lockers[addr].debtWei;
-        uint256 withdrawableWei = earnt - debt;
-        uint256 newDebtWei = s.globalEarnedWei;
+        uint256 earnt = divByNonZero((accruedWeiPerShare - debt) * shares, PRECISION);
+        uint256 withdrawableWei = s.lockers[addr].withdrawableWei + earnt;
 
+        s.lockers[addr].debtWei = accruedWeiPerShare;
         s.lockers[addr].withdrawableWei = withdrawableWei;
-        s.lockers[addr].debtWei = newDebtWei;
 
-        emit LockerUpdated(addr, earnt, debt, withdrawableWei, newDebtWei);
+        emit LockerUpdated(addr, earnt, debt, withdrawableWei, accruedWeiPerShare);
 
         return withdrawableWei;
     }
 
-    function getCurrentCheckpoint() external view returns (uint256) {
-        return FeePoolLib.Storage().lastWeiCheckpoint;
+    // /// TODO apply short circuit to avoid update if not necessary
+    // function _updateLockerFor(address addr) internal returns (uint256) {
+    //     uint256 shares = ERC721Lib.Storage()._balanceOf[addr];
+
+    //     FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
+
+    //     uint256 earnt = (s.accruedWeiPerShare * shares) / PRECISION;
+    //     uint256 debt = s.lockers[addr].debtWei;
+    //     uint256 withdrawableWei = earnt - debt;
+    //     uint256 newDebtWei = s.globalEarnedWei;
+
+    //     s.lockers[addr].withdrawableWei = withdrawableWei;
+    //     s.lockers[addr].debtWei = newDebtWei;
+
+    //     emit LockerUpdated(addr, earnt, debt, withdrawableWei, newDebtWei);
+
+    //     return withdrawableWei;
+    // }
+
+    function getCurrentFeeGlobals()
+        external
+        view
+        override
+        returns (
+            uint256 globalEarnedWei,
+            uint256 lastWeiCheckpoint,
+            uint256 accruedWeiPerShare
+        )
+    {
+        FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
+        return (s.globalEarnedWei, s.lastWeiCheckpoint, s.accruedWeiPerShare);
     }
 }

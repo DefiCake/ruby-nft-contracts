@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ERC2891Facet {
+import '../../misc/DivByNonZero.sol';
+
+contract ERC2891Facet is DivByNonZero {
     address public immutable feeReceiver;
     uint256 public immutable feeNumerator;
 
@@ -16,10 +18,7 @@ contract ERC2891Facet {
     /// @return receiver - address of who should be sent the royalty payment
     /// @return royaltyAmount - the royalty payment amount for _salePrice
     function royaltyInfo(uint256, uint256 _salePrice) external view returns (address, uint256) {
-        uint256 royaltyAmount = _salePrice * feeNumerator;
-        assembly {
-            royaltyAmount := div(royaltyAmount, 1000000000000000000)
-        }
+        uint256 royaltyAmount = divByNonZero(_salePrice * feeNumerator, 1000000000000000000);
         return (feeReceiver, royaltyAmount);
     }
 }
