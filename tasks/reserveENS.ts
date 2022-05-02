@@ -28,7 +28,10 @@ task('reserveENS', 'Reserves ENS .test domains').setAction(async (args, hre) => 
       console.log(domain, 'already owned')
       continue
     }
-    await testRegistrar.connect(deployer).register(solidityKeccak256(['string'], [label]), deployer.address)
+    await testRegistrar
+      .connect(deployer)
+      .register(solidityKeccak256(['string'], [label]), deployer.address)
+      .then(({ wait }) => wait())
     console.log('claimed ownership over domain', domain)
   }
 })

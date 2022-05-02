@@ -44,8 +44,9 @@ task('setENSResolution', 'Updates the name => address mapping on ENS registry').
 
     const { address } = await hre.ethers.getContract(contractName)
     if ((await ens.resolver(namehash(domain))) != publicResolverAddress)
-      await ens.setResolver(namehash(domain), publicResolverAddress)
+      await ens.setResolver(namehash(domain), publicResolverAddress).then(({ wait }) => wait())
 
-    await publicResolver['setAddr(bytes32,address)'](namehash(domain), address)
+    await publicResolver['setAddr(bytes32,address)'](namehash(domain), address).then(({ wait }) => wait())
+    console.log(domain, 'now points to', address)
   }
 })
