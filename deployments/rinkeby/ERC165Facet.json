@@ -1,0 +1,60 @@
+{
+  "address": "0x262BCC4F435e115E83453D221b56CfE0608D78c9",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x8c3b014876b0a7e3cb3ab507294629d6f11f7a6871274506b3f930c4df6ab887",
+  "receipt": {
+    "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
+    "from": "0x1ef5aB98912BB73c01C6846a9208475eaC6432bB",
+    "contractAddress": null,
+    "transactionIndex": 5,
+    "gasUsed": "115362",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x86f87423f5b7595eb2be1f350fc901e8604feee1ec577cb76b7e00be5bf536dc",
+    "transactionHash": "0x8c3b014876b0a7e3cb3ab507294629d6f11f7a6871274506b3f930c4df6ab887",
+    "logs": [],
+    "blockNumber": 10602991,
+    "cumulativeGasUsed": "1818818",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "5c1252cc05937253caab2c76197f2a13",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.4+commit.c7e474f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/nft/facets/ERC165Facet.sol\":\"ERC165Facet\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/nft/facets/ERC165Facet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ncontract ERC165Facet {\\n    /*//////////////////////////////////////////////////////////////\\n                              ERC165 LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {\\n        return\\n            interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165\\n            interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721\\n            interfaceId == 0x5b5e139f || // ERC165 Interface ID for ERC721Metadata\\n            interfaceId == 0x2a55205a; // ERC165 Interface ID for ERC2891\\n    }\\n}\\n\",\"keccak256\":\"0x96411d39614f0be66da2cf6e5c3c749598e952c3db23e85b6427069d3551fa16\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5061011d806100206000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806301ffc9a714602d575b600080fd5b603c603836600460ba565b6050565b604051901515815260200160405180910390f35b60006301ffc9a760e01b6001600160e01b031983161480608057506380ac58cd60e01b6001600160e01b03198316145b80609a5750635b5e139f60e01b6001600160e01b03198316145b8060b4575063152a902d60e11b6001600160e01b03198316145b92915050565b60006020828403121560ca578081fd5b81356001600160e01b03198116811460e0578182fd5b939250505056fea2646970667358221220690ac424319d34055538f066874e7b16c96efc225edb28753ff0fee20e5bf78b64736f6c63430008040033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c806301ffc9a714602d575b600080fd5b603c603836600460ba565b6050565b604051901515815260200160405180910390f35b60006301ffc9a760e01b6001600160e01b031983161480608057506380ac58cd60e01b6001600160e01b03198316145b80609a5750635b5e139f60e01b6001600160e01b03198316145b8060b4575063152a902d60e11b6001600160e01b03198316145b92915050565b60006020828403121560ca578081fd5b81356001600160e01b03198116811460e0578182fd5b939250505056fea2646970667358221220690ac424319d34055538f066874e7b16c96efc225edb28753ff0fee20e5bf78b64736f6c63430008040033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

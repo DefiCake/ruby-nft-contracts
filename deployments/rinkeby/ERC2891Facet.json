@@ -1,0 +1,125 @@
+{
+  "address": "0xA3418c3EfCf01629A0951746085b2A4306cE3Ce2",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_feeReceiver",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feeNumerator",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "feeNumerator",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "feeReceiver",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_salePrice",
+          "type": "uint256"
+        }
+      ],
+      "name": "royaltyInfo",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x28bf676515cbad01eee3840782c3e1e0c2f1cabad2634e6cf67233a0b7decbab",
+  "receipt": {
+    "to": "0x4e59b44847b379578588920cA78FbF26c0B4956C",
+    "from": "0x1ef5aB98912BB73c01C6846a9208475eaC6432bB",
+    "contractAddress": null,
+    "transactionIndex": 8,
+    "gasUsed": "158689",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xf3751710fb914181c7b3c8f36efa9d41a4465ba326d670a7fe4720bb1fb2af0b",
+    "transactionHash": "0x28bf676515cbad01eee3840782c3e1e0c2f1cabad2634e6cf67233a0b7decbab",
+    "logs": [],
+    "blockNumber": 10602998,
+    "cumulativeGasUsed": "442689",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xE91DDb29e076923B66fE65b0FD29f58b0A364dbC",
+    "70000000000000000"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "e787e50d6c41b80f1e380d6403a6e1ff",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.4+commit.c7e474f2\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeReceiver\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_feeNumerator\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"feeNumerator\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeReceiver\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_salePrice\",\"type\":\"uint256\"}],\"name\":\"royaltyInfo\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"royaltyInfo(uint256,uint256)\":{\"params\":{\"_salePrice\":\"- the sale price of the NFT asset specified by _tokenId\"},\"returns\":{\"_0\":\"receiver - address of who should be sent the royalty payment\",\"_1\":\"royaltyAmount - the royalty payment amount for _salePrice\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/nft/facets/ERC2891Facet.sol\":\"ERC2891Facet\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/misc/DivByNonZero.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ncontract DivByNonZero {\\n    function divByNonZero(uint256 _num, uint256 _div) internal pure returns (uint256 result) {\\n        assembly {\\n            result := div(_num, _div)\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x371516b9b4316402c679c0d0b8b952c6b0c250e40c9138dbc1d72f2ed7a6fab7\",\"license\":\"MIT\"},\"contracts/nft/facets/ERC2891Facet.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport '../../misc/DivByNonZero.sol';\\n\\ncontract ERC2891Facet is DivByNonZero {\\n    address public immutable feeReceiver;\\n    uint256 public immutable feeNumerator;\\n\\n    constructor(address _feeReceiver, uint256 _feeNumerator) {\\n        feeReceiver = _feeReceiver;\\n        feeNumerator = _feeNumerator;\\n    }\\n\\n    /// @notice Called with the sale price to determine how much royalty\\n    //          is owed and to whom.\\n    /// @param _salePrice - the sale price of the NFT asset specified by _tokenId\\n    /// @return receiver - address of who should be sent the royalty payment\\n    /// @return royaltyAmount - the royalty payment amount for _salePrice\\n    function royaltyInfo(uint256, uint256 _salePrice) external view returns (address, uint256) {\\n        uint256 royaltyAmount = divByNonZero(_salePrice * feeNumerator, 1000000000000000000);\\n        return (feeReceiver, royaltyAmount);\\n    }\\n}\\n\",\"keccak256\":\"0x519ac7c9a6315b8dfa12fafc80438b81562d0b48d21c3e53b7aeb3e84bd5be4a\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60c060405234801561001057600080fd5b5060405161029338038061029383398101604081905261002f9161004a565b60609190911b6001600160601b03191660805260a052610082565b6000806040838503121561005c578182fd5b82516001600160a01b0381168114610072578283fd5b6020939093015192949293505050565b60805160601c60a0516101de6100b56000396000818160c1015260fd0152600081816082015261013201526101de6000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80632a55205a14610046578063b3f006741461007d578063e86dea4a146100bc575b600080fd5b61005961005436600461015c565b6100f1565b604080516001600160a01b0390931683526020830191909152015b60405180910390f35b6100a47f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b039091168152602001610074565b6100e37f000000000000000000000000000000000000000000000000000000000000000081565b604051908152602001610074565b600080806101306101227f00000000000000000000000000000000000000000000000000000000000000008661017d565b670de0b6b3a7640000900490565b7f0000000000000000000000000000000000000000000000000000000000000000969095509350505050565b6000806040838503121561016e578182fd5b50508035926020909101359150565b60008160001904831182151516156101a357634e487b7160e01b81526011600452602481fd5b50029056fea26469706673582212201e9c9ba93294f305b87fb9ea3bf5e186278b87dd9e246cc353984688b7cb19a164736f6c63430008040033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c80632a55205a14610046578063b3f006741461007d578063e86dea4a146100bc575b600080fd5b61005961005436600461015c565b6100f1565b604080516001600160a01b0390931683526020830191909152015b60405180910390f35b6100a47f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b039091168152602001610074565b6100e37f000000000000000000000000000000000000000000000000000000000000000081565b604051908152602001610074565b600080806101306101227f00000000000000000000000000000000000000000000000000000000000000008661017d565b670de0b6b3a7640000900490565b7f0000000000000000000000000000000000000000000000000000000000000000969095509350505050565b6000806040838503121561016e578182fd5b50508035926020909101359150565b60008160001904831182151516156101a357634e487b7160e01b81526011600452602481fd5b50029056fea26469706673582212201e9c9ba93294f305b87fb9ea3bf5e186278b87dd9e246cc353984688b7cb19a164736f6c63430008040033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "royaltyInfo(uint256,uint256)": {
+        "params": {
+          "_salePrice": "- the sale price of the NFT asset specified by _tokenId"
+        },
+        "returns": {
+          "_0": "receiver - address of who should be sent the royalty payment",
+          "_1": "royaltyAmount - the royalty payment amount for _salePrice"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
