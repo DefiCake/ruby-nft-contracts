@@ -34,12 +34,19 @@ contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
 
     function mint(bytes32[] calldata proof, bytes32 leaf) external payable virtual {
         require(root != bytes32(0), 'MINTER_UNINITIALIZED');
-        if (!verified[msg.sender]) {
-            proof.verify(root, leaf);
-            verified[msg.sender] = true;
-        }
+        require(verified[msg.sender] || (verified[msg.sender] = proof.verify(root, leaf)), 'WHITELIST');
 
         _mint(msg.sender);
+    }
+
+    function batchMint(
+        bytes32[] calldata proof,
+        bytes32 leaf,
+        uint256 amount
+    ) external payable {
+        require(root != bytes32(0), 'MINTER_UNINITIALIZED');
+        require(verified[msg.sender] || (verified[msg.sender] = proof.verify(root, leaf)), 'WHITELIST');
+        _batchMint(msg.sender, amount);
     }
 
     function withdraw() external onlyOwner {
