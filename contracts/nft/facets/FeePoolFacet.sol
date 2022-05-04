@@ -20,28 +20,25 @@ contract FeePoolFacet is DivByNonZero, UsingDiamondSelfCall, IFeePoolFacet {
     function accrueRoyalties() public override returns (uint256 accruedRoyalties) {
         uint256 totalSupply = ERC721Lib.Storage().totalSupply;
 
-        if (totalSupply > 0) {
-            FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
+        if (totalSupply == 0) return 0;
 
-            uint256 lastWeiCheckpoint = s.lastWeiCheckpoint;
+        try IPaymentSplitter(pool).release(payable(address(this))) {} catch {}
 
-            try IPaymentSplitter(pool).release(payable(address(this))) {} catch {}
+        FeePoolLib.FeePoolStorage storage s = FeePoolLib.Storage();
+        uint256 lastWeiCheckpoint = s.lastWeiCheckpoint;
+        uint256 currentBalance = address(this).balance;
 
-            uint256 currentBalance = address(this).balance;
+        if (lastWeiCheckpoint >= currentBalance) return 0;
 
-            if (currentBalance > lastWeiCheckpoint) {
-                unchecked {
-                    accruedRoyalties = currentBalance - lastWeiCheckpoint;
-                }
-                uint256 accruedWeiPerShare = s.accruedWeiPerShare +
-                    divByNonZero(accruedRoyalties * PRECISION, totalSupply);
-
-                s.accruedWeiPerShare = accruedWeiPerShare;
-                s.lastWeiCheckpoint = currentBalance;
-
-                emit AccruedRoyalties(accruedRoyalties, accruedWeiPerShare);
-            }
+        unchecked {
+            accruedRoyalties = currentBalance - lastWeiCheckpoint;
         }
+        uint256 accruedWeiPerShare = s.accruedWeiPerShare + divByNonZero(accruedRoyalties * PRECISION, totalSupply);
+
+        s.accruedWeiPerShare = accruedWeiPerShare;
+        s.lastWeiCheckpoint = currentBalance;
+
+        emit AccruedRoyalties(accruedRoyalties, accruedWeiPerShare);
     }
 
     function withdrawRoyalties() external override returns (uint256) {

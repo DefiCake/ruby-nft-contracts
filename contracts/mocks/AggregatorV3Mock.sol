@@ -15,7 +15,7 @@ contract AggregatorMockV3 {
     /// @notice data from ~ 2022 / 04 / 25  19:47 CEST
     //      [ latestRoundData method Response ]
     //      roundId   uint80 :  92233720368547780959
-    //      answer   int256 :  293059734515
+    //      answer   int256 :  293059734515 => 2930.59734515 USD / ETH
     //      startedAt   uint256 :  1650905759
     //      updatedAt   uint256 :  1650905759
     //      answeredInRound   uint80 :  92233720368547780959

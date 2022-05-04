@@ -12,7 +12,7 @@ contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
     uint256 immutable LIMIT;
 
     bytes32 public root;
-    mapping(address => bool) public verified;
+    mapping(bytes32 => bool) public verified;
 
     constructor(
         uint256 limit,
@@ -27,25 +27,20 @@ contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
         root = _root;
     }
 
-    modifier canMint() {
+    modifier canMint(bytes32[] calldata proof) {
         require(block.timestamp < LIMIT, 'TIMEOUT');
+        require(root != bytes32(0), 'MINTER_UNINITIALIZED');
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        require(verified[leaf] || (verified[leaf] = proof.verify(root, leaf)), 'WHITELIST');
+
         _;
     }
 
-    function mint(bytes32[] calldata proof, bytes32 leaf) external payable virtual {
-        require(root != bytes32(0), 'MINTER_UNINITIALIZED');
-        require(verified[msg.sender] || (verified[msg.sender] = proof.verify(root, leaf)), 'WHITELIST');
-
+    function mint(bytes32[] calldata proof) external payable virtual canMint(proof) {
         _mint(msg.sender);
     }
 
-    function batchMint(
-        bytes32[] calldata proof,
-        bytes32 leaf,
-        uint256 amount
-    ) external payable {
-        require(root != bytes32(0), 'MINTER_UNINITIALIZED');
-        require(verified[msg.sender] || (verified[msg.sender] = proof.verify(root, leaf)), 'WHITELIST');
+    function batchMint(bytes32[] calldata proof, uint256 amount) external payable virtual canMint(proof) {
         _batchMint(msg.sender, amount);
     }
 
