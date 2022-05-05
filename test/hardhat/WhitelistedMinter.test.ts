@@ -2,12 +2,12 @@ import { AddressZero } from '@ethersproject/constants'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { ContractTransaction, Wallet } from 'ethers'
-import { hexlify, hexZeroPad, parseEther, randomBytes } from 'ethers/lib/utils'
+import { hexlify, parseEther, randomBytes } from 'ethers/lib/utils'
 import { ethers } from 'hardhat'
 import keccak256 from 'keccak256'
 import MerkleTree from 'merkletreejs'
 import { IRuby, WhitelistedMinter } from '../../typechain-types'
-import { WhitelistedMinterFixture } from './fixtures/WhitelistedMinter'
+import { WhitelistedMinterFixture } from './fixtures/WhitelistedMinterFixture'
 
 describe.only('WhitelistedMinter', () => {
   let ruby: IRuby
