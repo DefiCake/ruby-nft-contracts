@@ -7,5 +7,4 @@ coverage*
 .env
 .vscode
 deployments/*
-!deployments/mainnet
-!deployments/rinkeby
+yarn-error.log

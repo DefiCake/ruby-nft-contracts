@@ -13,6 +13,7 @@ const { ethers } = hre
 
 const ONE_ETH = parseEther('1')
 const PRECISION_SCALE = parseEther('1')
+const ROUNDING_ERROR_TOLERANCE = 2
 
 describe('FeePoolFacet', () => {
   let ruby: IRuby
@@ -95,166 +96,347 @@ describe('FeePoolFacet', () => {
           const events = await ruby.queryFilter(ruby.filters.AccruedRoyalties(), block)
           expect(events).to.be.empty
         })
-
-        it('does not accrue any royalties - splitter send', async () => {
-          const block = await ethers.provider.getBlockNumber()
-          await deployer.sendTransaction({ to: splitter.address, value: ONE_ETH })
-
-          await ruby.connect(deployer).accrueRoyalties()
-
-          const events = await ruby.queryFilter(ruby.filters.AccruedRoyalties(), block)
-          expect(events).to.be.empty
-        })
       })
       describe('if no ETH has been forwarded', () => {
         it('does not accrue any royalties', async () => {
           const block = await ethers.provider.getBlockNumber()
           await ruby.connect(deployer).accrueRoyalties()
 
-          const events = await ruby.queryFilter(ruby.filters.AccruedRoyalties(), block)
-          expect(events).to.be.empty
+          it('does not accrue any royalties - splitter send', async () => {
+            const block = await ethers.provider.getBlockNumber()
+            await deployer.sendTransaction({ to: splitter.address, value: ONE_ETH })
+
+            await ruby.connect(deployer).accrueRoyalties()
+
+            const events = await ruby.queryFilter(ruby.filters.AccruedRoyalties(), block)
+            expect(events).to.be.empty
+          })
         })
+        describe('if no ETH has been forwarded', () => {
+          it('does not accrue any royalties', async () => {
+            const block = await ethers.provider.getBlockNumber()
+            await ruby.connect(deployer).accrueRoyalties()
+
+            const events = await ruby.queryFilter(ruby.filters.AccruedRoyalties(), block)
+            expect(events).to.be.empty
+          })
+        })
+      })
+      describe('when nfts have been minted', () => {
+        describe('when ETH has been previously forwarded', () => {
+          describe('to the splitter', () => {
+            let totalWeiValue: BigNumber
+            let totalWeiValueInRuby: BigNumber
+
+            const sendEthToSplitter = async (amt: BigNumber | number) => {
+              if (typeof amt === 'number') amt = parseEther(`${amt}`)
+
+              await deployer.sendTransaction({ to: splitter.address, value: amt })
+              totalWeiValueInRuby = totalWeiValueInRuby.add(amt.mul(rubySplitterShares).div(totalSplitterShares))
+              totalWeiValue = totalWeiValue.add(amt)
+            }
+
+            const sendOneEthToSplitter = async () => {
+              await sendEthToSplitter(ONE_ETH)
+            }
+
+            beforeEach('send eth to the splitter', async () => {
+              totalWeiValue = BigNumber.from(0)
+              totalWeiValueInRuby = BigNumber.from(0)
+              await sendOneEthToSplitter()
+            })
+
+            describe('with a single minter and a single token', () => {
+              it('gives the whole ruby share to the first minter', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await ruby.accrueRoyalties()
+                const royalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
+                expect(royalties).to.be.equal(totalWeiValueInRuby)
+              })
+
+              it('emits an AccruedRoyalties event with the expected params', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                const tx = await ruby.accrueRoyalties()
+
+                const globalEarnedWei = totalWeiValueInRuby
+                const accruedWeiPerShare = globalEarnedWei.mul(PRECISION_SCALE)
+                await expect(tx).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH.div(2), accruedWeiPerShare)
+              })
+
+              it('correctly updates lastCheckpoint', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await ruby.accrueRoyalties()
+
+                const { lastWeiCheckpoint } = await ruby.getCurrentFeeGlobals()
+                expect(lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+              })
+            })
+
+            describe('with a single minter and multiple tokens', () => {
+              it('gives the whole ruby share to the first minter', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await sendOneEthToSplitter()
+                await ruby.accrueRoyalties()
+
+                const royalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
+                expect(royalties).to.be.closeTo(totalWeiValueInRuby, ROUNDING_ERROR_TOLERANCE)
+              })
+
+              it('emits an AccruedRoyalties event with the expected params', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                let accruedWeiPerShare = totalWeiValueInRuby.mul(SCALE)
+                expect((await ruby.getCurrentFeeGlobals()).accruedWeiPerShare)
+                await sendEthToSplitter(6)
+                const tx = await ruby.accrueRoyalties()
+                accruedWeiPerShare = accruedWeiPerShare.add(ONE_ETH.mul(SCALE))
+
+                await expect(tx).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH.mul(3), accruedWeiPerShare)
+              })
+
+              it('correctly updates lastCheckpoint', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+
+                await sendOneEthToSplitter()
+                await ruby.accrueRoyalties()
+
+                const { lastWeiCheckpoint } = await ruby.getCurrentFeeGlobals()
+                expect(lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+              })
+            })
+
+            describe('with multiple minters and multiple tokens', () => {
+              it('gives first share to the first minter, then gives normal rate to the rest', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
+                await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
+
+                await ruby.accrueRoyalties()
+
+                {
+                  const aliceRoyalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
+                  expect(aliceRoyalties).to.be.equal(totalWeiValueInRuby)
+
+                  await ruby.connect(alice).withdrawRoyalties()
+                  await expect(ruby.connect(bob).callStatic.withdrawRoyalties()).to.be.revertedWith('NO_REWARD')
+                  await expect(ruby.connect(bob).callStatic.withdrawRoyalties()).to.be.revertedWith('NO_REWARD')
+                }
+
+                await sendEthToSplitter(6)
+
+                {
+                  const expectedRoyalties = ONE_ETH
+
+                  expect(await ruby.connect(alice).callStatic.withdrawRoyalties()).to.be.closeTo(
+                    expectedRoyalties,
+                    ROUNDING_ERROR_TOLERANCE
+                  )
+
+                  expect(await ruby.connect(bob).callStatic.withdrawRoyalties()).to.be.closeTo(
+                    expectedRoyalties,
+                    ROUNDING_ERROR_TOLERANCE
+                  )
+                  expect(await ruby.connect(carol).callStatic.withdrawRoyalties()).to.be.closeTo(
+                    expectedRoyalties,
+                    ROUNDING_ERROR_TOLERANCE
+                  )
+                }
+              })
+
+              it('emits an AccruedRoyalties event with the expected params', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                const tx1 = await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
+                await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
+
+                await expect(tx1).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH.div(2), ONE_ETH.mul(SCALE).div(2))
+
+                await sendEthToSplitter(6)
+                const tx2 = await ruby.accrueRoyalties()
+
+                await expect(tx2)
+                  .to.emit(ruby, 'AccruedRoyalties')
+                  .withArgs(ONE_ETH.mul(3), ONE_ETH.add(ONE_ETH.div(2)).mul(SCALE))
+              })
+              it('correctly updates lastCheckpoint', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
+                await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
+                expect((await ruby.getCurrentFeeGlobals()).lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+
+                await sendEthToSplitter(6)
+                await ruby.accrueRoyalties()
+                expect((await ruby.getCurrentFeeGlobals()).lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+              })
+            })
+          })
+
+          describe('to the ruby', () => {
+            let totalWeiValue: BigNumber
+            let totalWeiValueInRuby: BigNumber
+
+            const sendEthToTheRuby = async (amt: BigNumber | number) => {
+              if (typeof amt === 'number') amt = parseEther(`${amt}`)
+
+              await deployer.sendTransaction({ to: ruby.address, value: amt })
+              totalWeiValueInRuby = totalWeiValueInRuby.add(amt)
+              totalWeiValue = totalWeiValue.add(amt)
+            }
+
+            const sendOneEthToTheRuby = async () => {
+              await sendEthToTheRuby(ONE_ETH)
+            }
+
+            beforeEach('send eth to the splitter', async () => {
+              totalWeiValue = BigNumber.from(0)
+              totalWeiValueInRuby = BigNumber.from(0)
+              await sendOneEthToTheRuby()
+            })
+
+            describe('with a single minter and a single token', () => {
+              it('gives the whole ruby share to the first minter', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await ruby.accrueRoyalties()
+                const royalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
+                expect(royalties).to.be.equal(totalWeiValueInRuby)
+              })
+
+              it('emits an AccruedRoyalties event with the expected params', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                const tx = await ruby.accrueRoyalties()
+
+                const globalEarnedWei = totalWeiValueInRuby
+                const accruedWeiPerShare = globalEarnedWei.mul(PRECISION_SCALE)
+                await expect(tx).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH, accruedWeiPerShare)
+              })
+
+              it('correctly updates lastCheckpoint', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await ruby.accrueRoyalties()
+
+                const { lastWeiCheckpoint } = await ruby.getCurrentFeeGlobals()
+                expect(lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+              })
+            })
+
+            describe('with a single minter and multiple tokens', () => {
+              it('gives the whole ruby share to the first minter', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await sendOneEthToTheRuby()
+                await ruby.accrueRoyalties()
+
+                const royalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
+                expect(royalties).to.be.closeTo(totalWeiValueInRuby, ROUNDING_ERROR_TOLERANCE)
+              })
+
+              it('emits an AccruedRoyalties event with the expected params', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                let accruedWeiPerShare = totalWeiValueInRuby.mul(SCALE)
+                expect((await ruby.getCurrentFeeGlobals()).accruedWeiPerShare)
+                await sendEthToTheRuby(3)
+                const tx = await ruby.accrueRoyalties()
+                accruedWeiPerShare = accruedWeiPerShare.add(ONE_ETH.mul(SCALE))
+
+                await expect(tx).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH.mul(3), accruedWeiPerShare)
+              })
+
+              it('correctly updates lastCheckpoint', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+
+                await sendOneEthToTheRuby()
+                await ruby.accrueRoyalties()
+
+                const { lastWeiCheckpoint } = await ruby.getCurrentFeeGlobals()
+                expect(lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+              })
+            })
+
+            describe('with multiple minters and multiple tokens', () => {
+              it('gives first share to the first minter, then gives normal rate to the rest', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
+                await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
+
+                await ruby.accrueRoyalties()
+
+                {
+                  const aliceRoyalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
+                  expect(aliceRoyalties).to.be.equal(totalWeiValueInRuby)
+
+                  await ruby.connect(alice).withdrawRoyalties()
+                  await expect(ruby.connect(bob).callStatic.withdrawRoyalties()).to.be.revertedWith('NO_REWARD')
+                  await expect(ruby.connect(bob).callStatic.withdrawRoyalties()).to.be.revertedWith('NO_REWARD')
+                }
+
+                await sendEthToTheRuby(3)
+
+                {
+                  const expectedRoyalties = ONE_ETH
+
+                  expect(await ruby.connect(alice).callStatic.withdrawRoyalties()).to.be.closeTo(
+                    expectedRoyalties,
+                    ROUNDING_ERROR_TOLERANCE
+                  )
+
+                  expect(await ruby.connect(bob).callStatic.withdrawRoyalties()).to.be.closeTo(
+                    expectedRoyalties,
+                    ROUNDING_ERROR_TOLERANCE
+                  )
+                  expect(await ruby.connect(carol).callStatic.withdrawRoyalties()).to.be.closeTo(
+                    expectedRoyalties,
+                    ROUNDING_ERROR_TOLERANCE
+                  )
+                }
+              })
+
+              it('emits an AccruedRoyalties event with the expected params', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                const tx1 = await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
+                await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
+
+                await expect(tx1).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH, ONE_ETH.mul(SCALE))
+
+                await sendEthToTheRuby(3)
+                const tx2 = await ruby.accrueRoyalties()
+
+                await expect(tx2).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH.mul(3), ONE_ETH.mul(2).mul(SCALE))
+              })
+              it('correctly updates lastCheckpoint', async () => {
+                await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
+                await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
+                await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
+                expect((await ruby.getCurrentFeeGlobals()).lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+
+                await sendEthToTheRuby(6)
+                await ruby.accrueRoyalties()
+                expect((await ruby.getCurrentFeeGlobals()).lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
+              })
+            })
+          })
+        })
+        describe('when no ETH has been previously forwarded', () => {})
       })
     })
-    describe('when nfts have been minted', () => {
-      describe('when ETH has been previously forwarded', () => {
-        describe('to the splitter', () => {
-          let totalWeiValue: BigNumber
-          let totalWeiValueInRuby: BigNumber
+    describe('withdrawRoyalties', () => {
+      it('pending')
+    })
 
-          const sendOneEthToSplitter = async () => {
-            await deployer.sendTransaction({ to: splitter.address, value: ONE_ETH })
-            totalWeiValueInRuby = totalWeiValueInRuby.add(ONE_ETH.mul(rubySplitterShares).div(totalSplitterShares))
-            totalWeiValue = totalWeiValue.add(ONE_ETH)
-          }
+    describe('getCurrentFeeGlobals', () => {
+      it('pending')
+    })
 
-          beforeEach('send eth to the splitter', async () => {
-            totalWeiValue = BigNumber.from(0)
-            totalWeiValueInRuby = BigNumber.from(0)
-            await sendOneEthToSplitter()
-          })
-
-          describe('with a single minter and a single token', () => {
-            it('gives the whole ruby share to the first minter', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await ruby.accrueRoyalties()
-              const royalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
-              expect(royalties).to.be.equal(totalWeiValueInRuby)
-            })
-
-            it('emits an AccruedRoyalties event with the expected params', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              const tx = await ruby.accrueRoyalties()
-
-              const globalEarnedWei = totalWeiValueInRuby
-              const accruedWeiPerShare = globalEarnedWei.mul(PRECISION_SCALE)
-              await expect(tx)
-                .to.emit(ruby, 'AccruedRoyalties')
-                .withArgs(globalEarnedWei, accruedWeiPerShare, globalEarnedWei)
-            })
-
-            it('correctly updates lastCheckpoint', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await ruby.accrueRoyalties()
-
-              const { lastWeiCheckpoint } = await ruby.getCurrentFeeGlobals()
-              expect(lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
-            })
-          })
-
-          describe('with a single minter and multiple tokens', () => {
-            it('gives the whole ruby share to the first minter', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await sendOneEthToSplitter()
-              await ruby.accrueRoyalties()
-
-              const royalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
-              expect(royalties).to.be.equal(totalWeiValueInRuby)
-            })
-
-            it('emits an AccruedRoyalties event with the expected params', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              let accruedWeiPerShare = totalWeiValueInRuby.mul(SCALE)
-              expect((await ruby.getCurrentFeeGlobals()).accruedWeiPerShare)
-              await sendOneEthToSplitter()
-              const tx = await ruby.accrueRoyalties()
-              accruedWeiPerShare = accruedWeiPerShare.add(
-                ONE_ETH.mul(rubySplitterShares).div(totalSplitterShares).mul(SCALE).div(2)
-              )
-
-              await expect(tx)
-                .to.emit(ruby, 'AccruedRoyalties')
-                .withArgs(totalWeiValueInRuby, accruedWeiPerShare, totalWeiValueInRuby)
-            })
-
-            it('correctly updates lastCheckpoint', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await sendOneEthToSplitter()
-              await ruby.accrueRoyalties()
-
-              const { lastWeiCheckpoint } = await ruby.getCurrentFeeGlobals()
-              expect(lastWeiCheckpoint).to.be.equal(totalWeiValueInRuby)
-            })
-          })
-
-          // describe('bug?', () => {
-          //   it('gives first share to the first minter, then gives normal rate to the rest', async () => {
-          //     await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-          //     await minter.connect(bob).mint(ruby.address, alice.address, await ruby.totalSupply())
-          //     await minter.connect(carol).mint(ruby.address, alice.address, await ruby.totalSupply())
-          //     await ruby.accrueRoyalties()
-
-          //     {
-          //       let accruedWeiPerShare = totalWeiValueInRuby.mul(SCALE)
-
-          //       const aliceRoyalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
-          //       expect(aliceRoyalties).to.be.equal(totalWeiValueInRuby)
-
-          //       // const bobRoyalties = await ruby.connect(bob).callStatic.withdrawRoyalties()
-          //       // expect(bobRoyalties).to.be.equal(0)
-
-          //       // const carolRoyalties = await ruby.connect(bob).callStatic.withdrawRoyalties()
-          //       // expect(carolRoyalties).to.be.equal(0)
-          //     }
-          //   })
-
-          //   it('emits an AccruedRoyalties evnt with the expected params')
-          //   it('correctly updates lastCheckpoint')
-          // })
-
-          describe('with multiple minters and multiple tokens', () => {
-            it('gives first share to the first minter, then gives normal rate to the rest', async () => {
-              await minter.connect(alice).mint(ruby.address, alice.address, await ruby.totalSupply())
-              await minter.connect(bob).mint(ruby.address, bob.address, await ruby.totalSupply())
-              await minter.connect(carol).mint(ruby.address, carol.address, await ruby.totalSupply())
-              await ruby.accrueRoyalties()
-
-              {
-                let accruedWeiPerShare = totalWeiValueInRuby.mul(SCALE)
-
-                const aliceRoyalties = await ruby.connect(alice).callStatic.withdrawRoyalties()
-                expect(aliceRoyalties).to.be.equal(totalWeiValueInRuby)
-
-                // const bobRoyalties = await ruby.connect(bob).callStatic.withdrawRoyalties()
-                // expect(bobRoyalties).to.be.equal(0)
-
-                // const carolRoyalties = await ruby.connect(bob).callStatic.withdrawRoyalties()
-                // expect(carolRoyalties).to.be.equal(0)
-              }
-            })
-
-            it('emits an AccruedRoyalties evnt with the expected params')
-            it('correctly updates lastCheckpoint')
-          })
-        })
-
-        describe('to the ruby', () => {})
-      })
-      describe('when no ETH has been previously forwarded', () => {})
+    describe('getLockerInfo', () => {
+      it('pending')
     })
   })
-  describe('withdrawRoyalties', () => {})
 })

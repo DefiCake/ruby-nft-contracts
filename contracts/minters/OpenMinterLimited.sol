@@ -7,18 +7,25 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '../interfaces/IMinter.sol';
 import './PayableChainlinkMinter.sol';
 
-contract OpenMinter is IMinter, Ownable, PayableChainlinkMinter {
+contract OpenMinterLimited is IMinter, Ownable, PayableChainlinkMinter {
+    uint256 public immutable limit;
+
     constructor(
         address _mintable,
         address _oracle,
-        uint256 _price
-    ) PayableChainlinkMinter(_mintable, _oracle, _price) {}
+        uint256 _price,
+        uint256 _limit
+    ) PayableChainlinkMinter(_mintable, _oracle, _price) {
+        limit = _limit;
+    }
 
     function mint(bytes32[] calldata proof) external payable override {
+        require(block.timestamp < limit, 'TIMEOUT');
         _mint(msg.sender);
     }
 
     function batchMint(bytes32[] calldata proof, uint256 amount) external payable override {
+        require(block.timestamp < limit, 'TIMEOUT');
         _batchMint(msg.sender, amount);
     }
 

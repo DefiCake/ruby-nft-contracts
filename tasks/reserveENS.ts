@@ -2,17 +2,20 @@ import { AddressZero } from '@ethersproject/constants'
 import { namehash, solidityKeccak256 } from 'ethers/lib/utils'
 import { task } from 'hardhat/config'
 import { ENS_ADDRESS, NFT_CONTRACT_NAME, OPEN_MINTER_CONTRACT_NAME, ENS_PROJECT_PREFIX } from '../deploy/constants'
-import { ENS__factory, TestRegistrar__factory } from '../typechain-types'
+
+import { abi as ENS_ABI } from '@ensdomains/ens/build/contracts/ENS.json'
+import { abi as REGISTRAR_ABI } from '@ensdomains/ens/build/contracts/TestRegistrar.json'
+import { Contract, ContractTransaction } from 'ethers'
 
 task('reserveENS', 'Reserves ENS .test domains').setAction(async (args, hre) => {
   const { getNamedAccounts } = hre
 
   const deployer = await getNamedAccounts().then(({ deployer }) => hre.ethers.getSigner(deployer))
 
-  const ens = ENS__factory.connect(ENS_ADDRESS, deployer)
+  const ens = new Contract(ENS_ADDRESS, ENS_ABI, deployer)
   const testRegistrarAddress = await ens.owner(namehash('test'))
 
-  const testRegistrar = TestRegistrar__factory.connect(testRegistrarAddress, deployer)
+  const testRegistrar = new Contract(testRegistrarAddress, REGISTRAR_ABI, deployer)
 
   const isOwned = async (domain: string) => {
     return (await ens.owner(namehash(domain))) != AddressZero
@@ -28,7 +31,10 @@ task('reserveENS', 'Reserves ENS .test domains').setAction(async (args, hre) => 
       console.log(domain, 'already owned')
       continue
     }
-    await testRegistrar.connect(deployer).register(solidityKeccak256(['string'], [label]), deployer.address)
+    await testRegistrar
+      .connect(deployer)
+      .register(solidityKeccak256(['string'], [label]), deployer.address)
+      .then((tx: ContractTransaction) => tx.wait())
     console.log('claimed ownership over domain', domain)
   }
 })

@@ -25,7 +25,7 @@ describe('minting test', () => {
     const expectedCostWei = WEI_SCALE.mul(price_USDNFT).div(chainlinkPrice)
     const value = parseEther('1')
 
-    const tx = await minter.mint([HashZero], HashZero, { value })
+    const tx = await minter.mint([HashZero], { value })
     await expect(tx).to.changeEtherBalance(minter, expectedCostWei)
     await expect(tx).to.changeEtherBalance(alice, expectedCostWei.mul(-1))
     await expect(tx).to.emit(ruby, 'Transfer').withArgs(AddressZero, alice.address, 0)

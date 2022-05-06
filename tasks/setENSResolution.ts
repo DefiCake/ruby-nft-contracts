@@ -8,7 +8,8 @@ import {
   OPEN_MINTER_CONTRACT_NAME,
   ENS_PROJECT_PREFIX,
 } from '../deploy/constants'
-import { PublicResolver__factory, ENS__factory } from '../typechain-types'
+import { abi as ENS_ABI } from '@ensdomains/ens/build/contracts/ENS.json'
+import { Contract, ContractTransaction } from 'ethers'
 
 task('setENSResolution', 'Updates the name => address mapping on ENS registry').setAction(async (args, hre) => {
   const {
@@ -23,9 +24,9 @@ task('setENSResolution', 'Updates the name => address mapping on ENS registry').
     args: [ENS_ADDRESS, AddressZero],
   })
 
-  const publicResolver = PublicResolver__factory.connect(publicResolverAddress, deployer)
+  const publicResolver = await hre.ethers.getContract(PUBLIC_RESOLVER_CONTRACT_NAME)
 
-  const ens = ENS__factory.connect(ENS_ADDRESS, deployer)
+  const ens = new Contract(ENS_ADDRESS, ENS_ABI, deployer)
 
   const isOwned = async (domain: string) => {
     return (await ens.owner(namehash(domain))) != AddressZero
@@ -44,8 +45,11 @@ task('setENSResolution', 'Updates the name => address mapping on ENS registry').
 
     const { address } = await hre.ethers.getContract(contractName)
     if ((await ens.resolver(namehash(domain))) != publicResolverAddress)
-      await ens.setResolver(namehash(domain), publicResolverAddress)
+      await ens.setResolver(namehash(domain), publicResolverAddress).then((tx: ContractTransaction) => tx.wait())
 
-    await publicResolver['setAddr(bytes32,address)'](namehash(domain), address)
+    await publicResolver['setAddr(bytes32,address)'](namehash(domain), address).then((tx: ContractTransaction) =>
+      tx.wait()
+    )
+    console.log(domain, 'now points to', address)
   }
 })

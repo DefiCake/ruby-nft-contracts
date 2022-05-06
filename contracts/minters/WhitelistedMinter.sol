@@ -4,15 +4,16 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/utils/cryptography/MerkleProof.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
+import '../interfaces/IMinter.sol';
 import './PayableChainlinkMinter.sol';
 
-contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
+contract WhitelistedMinter is IMinter, Ownable, PayableChainlinkMinter {
     using MerkleProof for bytes32[];
 
     uint256 immutable LIMIT;
 
     bytes32 public root;
-    mapping(address => bool) public verified;
+    mapping(bytes32 => bool) public verified;
 
     constructor(
         uint256 limit,
@@ -27,22 +28,24 @@ contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
         root = _root;
     }
 
-    modifier canMint() {
+    modifier canMint(bytes32[] calldata proof) {
         require(block.timestamp < LIMIT, 'TIMEOUT');
+        require(root != bytes32(0), 'MINTER_UNINITIALIZED');
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        require(verified[leaf] || (verified[leaf] = proof.verify(root, leaf)), 'WHITELIST');
+
         _;
     }
 
-    function mint(bytes32[] calldata proof, bytes32 leaf) external payable virtual {
-        require(root != bytes32(0), 'MINTER_UNINITIALIZED');
-        if (!verified[msg.sender]) {
-            proof.verify(root, leaf);
-            verified[msg.sender] = true;
-        }
-
+    function mint(bytes32[] calldata proof) external payable virtual override canMint(proof) {
         _mint(msg.sender);
     }
 
-    function withdraw() external onlyOwner {
+    function batchMint(bytes32[] calldata proof, uint256 amount) external payable virtual override canMint(proof) {
+        _batchMint(msg.sender, amount);
+    }
+
+    function withdraw() external virtual override onlyOwner {
         SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
     }
 }
