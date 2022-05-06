@@ -9,7 +9,7 @@ import MerkleTree from 'merkletreejs'
 import { IRuby, WhitelistedMinter } from '../../typechain-types'
 import { WhitelistedMinterFixture } from './fixtures/WhitelistedMinterFixture'
 
-describe.only('WhitelistedMinter', () => {
+describe('WhitelistedMinter', () => {
   let ruby: IRuby
   let whitelistedMinter: WhitelistedMinter
   let deployer: SignerWithAddress

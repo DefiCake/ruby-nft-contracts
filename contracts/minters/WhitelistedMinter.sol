@@ -4,9 +4,10 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/utils/cryptography/MerkleProof.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
+import '../interfaces/IMinter.sol';
 import './PayableChainlinkMinter.sol';
 
-contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
+contract WhitelistedMinter is IMinter, Ownable, PayableChainlinkMinter {
     using MerkleProof for bytes32[];
 
     uint256 immutable LIMIT;
@@ -36,15 +37,15 @@ contract WhitelistedMinter is Ownable, PayableChainlinkMinter {
         _;
     }
 
-    function mint(bytes32[] calldata proof) external payable virtual canMint(proof) {
+    function mint(bytes32[] calldata proof) external payable virtual override canMint(proof) {
         _mint(msg.sender);
     }
 
-    function batchMint(bytes32[] calldata proof, uint256 amount) external payable virtual canMint(proof) {
+    function batchMint(bytes32[] calldata proof, uint256 amount) external payable virtual override canMint(proof) {
         _batchMint(msg.sender, amount);
     }
 
-    function withdraw() external onlyOwner {
+    function withdraw() external virtual override onlyOwner {
         SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
     }
 }
