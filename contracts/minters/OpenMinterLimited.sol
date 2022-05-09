@@ -28,8 +28,4 @@ contract OpenMinterLimited is IMinter, Ownable, PayableChainlinkMinter {
         require(block.timestamp < limit, 'TIMEOUT');
         _batchMint(msg.sender, amount);
     }
-
-    function withdraw() external override onlyOwner {
-        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-    }
 }

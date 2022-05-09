@@ -21,8 +21,4 @@ contract OpenMinter is IMinter, Ownable, PayableChainlinkMinter {
     function batchMint(bytes32[] calldata proof, uint256 amount) external payable override {
         _batchMint(msg.sender, amount);
     }
-
-    function withdraw() external override onlyOwner {
-        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-    }
 }

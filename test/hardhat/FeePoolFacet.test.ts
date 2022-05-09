@@ -1,23 +1,29 @@
-import { AddressZero } from '@ethersproject/constants'
+import { AddressZero, Zero } from '@ethersproject/constants'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { expect } from 'chai'
 import { BigNumber } from 'ethers'
 import { parseEther } from 'ethers/lib/utils'
 import hre from 'hardhat'
 import { SCALE, SPLITTER_V1_CONTRACT_NAME } from '../../deploy/constants'
-import { IRuby, MockMinter, OwnedSplitterV1 } from '../../typechain-types'
+import {
+  ETHRejecetMock,
+  IRuby,
+  MockMinter,
+  OwnedSplitterV1,
+  WithdrawRoyaltiesReentrancyMock__factory,
+} from '../../typechain-types'
 import { FeePoolFixture } from './fixtures/FeePoolFixture'
 import { impersonate } from './utils/impersonate'
 
 const { ethers } = hre
 
 const ONE_ETH = parseEther('1')
-const PRECISION_SCALE = parseEther('1')
 const ROUNDING_ERROR_TOLERANCE = 2
 
 describe('FeePoolFacet', () => {
   let ruby: IRuby
   let splitter: OwnedSplitterV1
+  let rejecter: ETHRejecetMock
   let deployer: SignerWithAddress
   let alice: SignerWithAddress
   let bob: SignerWithAddress
@@ -37,7 +43,7 @@ describe('FeePoolFacet', () => {
 
   beforeEach('fixture', async () => {
     const fixture = await FeePoolFixture()
-    ;({ ruby, splitter, minter } = fixture)
+    ;({ ruby, splitter, rejecter, minter } = fixture)
     ;[deployer, alice, bob, carol, mallory] = fixture.wallets
   })
 
@@ -154,7 +160,7 @@ describe('FeePoolFacet', () => {
               const tx = await ruby.accrueRoyalties()
 
               const globalEarnedWei = totalWeiValueInRuby
-              const accruedWeiPerShare = globalEarnedWei.mul(PRECISION_SCALE)
+              const accruedWeiPerShare = globalEarnedWei.mul(SCALE)
               await expect(tx).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH.div(2), accruedWeiPerShare)
             })
 
@@ -305,7 +311,7 @@ describe('FeePoolFacet', () => {
               const tx = await ruby.accrueRoyalties()
 
               const globalEarnedWei = totalWeiValueInRuby
-              const accruedWeiPerShare = globalEarnedWei.mul(PRECISION_SCALE)
+              const accruedWeiPerShare = globalEarnedWei.mul(SCALE)
               await expect(tx).to.emit(ruby, 'AccruedRoyalties').withArgs(ONE_ETH, accruedWeiPerShare)
             })
 
@@ -423,14 +429,122 @@ describe('FeePoolFacet', () => {
     })
   })
   describe('withdrawRoyalties', () => {
-    it('pending')
+    it('updates owed royalties and transfers them to the sender', async () => {
+      await minter.mint(ruby.address, alice.address, await ruby.totalSupply())
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH })
+
+      const tx = await ruby.connect(alice).withdrawRoyalties()
+      await expect(tx).to.changeEtherBalance(alice, ONE_ETH)
+      await expect(tx).to.emit(ruby, 'WithdrawnRoyalties').withArgs(alice.address, ONE_ETH, Zero)
+
+      const { debtWei, withdrawableWei } = await ruby.getLockerInfo(alice.address)
+
+      expect(debtWei).to.be.equal(ONE_ETH.mul(SCALE))
+      expect(withdrawableWei).to.be.equal(Zero)
+    })
+    it('fails safely if the caller does not accept ETH', async () => {
+      const _rejecter = await impersonate(hre, rejecter)
+
+      await minter.connect(_rejecter).mint(ruby.address, rejecter.address, await ruby.totalSupply())
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH })
+      await ruby.accrueRoyalties()
+
+      await expect(ruby.connect(_rejecter).withdrawRoyalties()).to.be.revertedWith('ETH_SEND_FAIL')
+    })
+
+    it('rejects if trying to withdraw royalties twice', async () => {
+      await minter.mint(ruby.address, alice.address, await ruby.totalSupply())
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH })
+      await ruby.connect(alice).withdrawRoyalties()
+      await expect(ruby.connect(alice).withdrawRoyalties()).to.be.revertedWith('NO_REWARD')
+    })
+
+    it('rejects reentrancy', async () => {
+      const reentrant = await new WithdrawRoyaltiesReentrancyMock__factory(deployer).deploy()
+
+      await minter.mint(ruby.address, reentrant.address, await ruby.totalSupply())
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH })
+
+      const impersonatedReentrant = await impersonate(hre, reentrant.address)
+      await expect(ruby.connect(impersonatedReentrant).withdrawRoyalties())
+        .to.emit(reentrant, 'Rejected')
+        .withArgs('NO_REWARD')
+    })
   })
 
   describe('getCurrentFeeGlobals', () => {
-    it('pending')
+    it('correctly returns fee globals', async () => {
+      {
+        const { lastWeiCheckpoint, accruedWeiPerShare } = await ruby.getCurrentFeeGlobals()
+
+        expect(lastWeiCheckpoint).to.be.equal(Zero)
+        expect(accruedWeiPerShare).to.be.equal(Zero)
+      }
+      await minter.mint(ruby.address, alice.address, await ruby.totalSupply())
+      await minter.mint(ruby.address, bob.address, await ruby.totalSupply())
+      await minter.mint(ruby.address, bob.address, await ruby.totalSupply())
+
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH.mul(3) })
+      await ruby.accrueRoyalties()
+
+      {
+        const { lastWeiCheckpoint, accruedWeiPerShare } = await ruby.getCurrentFeeGlobals()
+
+        expect(lastWeiCheckpoint).to.be.equal(ONE_ETH.mul(3))
+        expect(accruedWeiPerShare).to.be.equal(ONE_ETH.mul(SCALE))
+      }
+
+      await ruby.connect(alice).withdrawRoyalties()
+
+      {
+        const { lastWeiCheckpoint, accruedWeiPerShare } = await ruby.getCurrentFeeGlobals()
+
+        expect(lastWeiCheckpoint).to.be.equal(ONE_ETH.mul(2))
+        expect(accruedWeiPerShare).to.be.equal(ONE_ETH.mul(SCALE))
+      }
+    })
   })
 
   describe('getLockerInfo', () => {
-    it('pending')
+    it('correctly returns lockers', async () => {
+      const firstTokenId = 1
+      const secondTokenId = 2
+      const thirdTokenId = 3
+      const fourthTokenId = 4
+      await minter.mint(ruby.address, alice.address, firstTokenId)
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH })
+
+      {
+        const { debtWei, withdrawableWei } = await ruby.getLockerInfo(alice.address)
+        expect(withdrawableWei).to.be.equal(Zero)
+        expect(debtWei).to.be.equal(Zero)
+      }
+
+      await minter.mint(ruby.address, bob.address, secondTokenId)
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH })
+
+      {
+        const { debtWei, withdrawableWei } = await ruby.getLockerInfo(bob.address)
+        expect(withdrawableWei).to.be.equal(Zero)
+        expect(debtWei).to.be.equal(ONE_ETH.mul(SCALE))
+      }
+
+      await minter.mint(ruby.address, carol.address, thirdTokenId)
+      await deployer.sendTransaction({ to: ruby.address, value: ONE_ETH.mul(3) })
+
+      {
+        const { debtWei, withdrawableWei } = await ruby.getLockerInfo(carol.address)
+        expect(withdrawableWei).to.be.equal(Zero)
+        expect(debtWei).to.be.equal(ONE_ETH.add(ONE_ETH.div(2)).mul(SCALE))
+      }
+
+      await minter.mint(ruby.address, alice.address, fourthTokenId)
+
+      {
+        const { debtWei, withdrawableWei } = await ruby.getLockerInfo(alice.address)
+        expect(withdrawableWei).to.be.equal(ONE_ETH.mul(2).add(ONE_ETH.div(2)))
+        expect(debtWei).to.be.equal(ONE_ETH.mul(2).add(ONE_ETH.div(2)).mul(SCALE))
+      }
+    })
   })
 })

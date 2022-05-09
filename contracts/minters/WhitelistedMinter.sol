@@ -10,7 +10,7 @@ import './PayableChainlinkMinter.sol';
 contract WhitelistedMinter is IMinter, Ownable, PayableChainlinkMinter {
     using MerkleProof for bytes32[];
 
-    uint256 immutable LIMIT;
+    uint256 public immutable LIMIT;
 
     bytes32 public root;
     mapping(bytes32 => bool) public verified;
@@ -43,9 +43,5 @@ contract WhitelistedMinter is IMinter, Ownable, PayableChainlinkMinter {
 
     function batchMint(bytes32[] calldata proof, uint256 amount) external payable virtual override canMint(proof) {
         _batchMint(msg.sender, amount);
-    }
-
-    function withdraw() external virtual override onlyOwner {
-        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
     }
 }

@@ -4,11 +4,17 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { BOOMER_CONTRACT_NAME } from '../../../deploy/constants'
 import { Boomer } from '../../../typechain-types'
 
+interface Addressable {
+  address: string
+}
+
 export async function impersonate(
   hre: HardhatRuntimeEnvironment,
-  address: string,
+  address: string | Addressable,
   funder?: string | SignerWithAddress
 ) {
+  if (typeof address === 'object') address = address.address
+
   if (!funder) funder = (await hre.ethers.getSigners())[0]
   if (typeof funder === 'string') funder = await hre.ethers.getSigner(funder)
 

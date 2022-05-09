@@ -15,6 +15,8 @@ export const ERC2891_FACET_NAME = 'ERC2891Facet'
 export const MOCK_MINTER_CONTRACT_NAME = 'MockMinter'
 export const MOCK_ERC721_CONTRACT_NAME = 'ERC721Mock'
 export const MOCK_CHAINLINK_ETH_PRICE_FEED = 'AggregatorMockV3'
+export const MOCK_ERC20_CONTRACT_NAME = 'ERC20Mock'
+export const MOCK_ETH_REJECTER = 'ETHRejecetMock'
 
 export const OPEN_MINTER_CONTRACT_NAME = 'OpenMinter'
 export const WHITELIST_MINTER_CONTRACT_NAME = 'WhitelistedMinter'

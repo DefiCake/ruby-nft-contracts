@@ -11,6 +11,12 @@ contract AggregatorMockV3 {
         return 8;
     }
 
+    int256 public price = 293059734515;
+
+    function setPrice(int256 _price) external {
+        price = _price;
+    }
+
     /// @dev data from https://etherscan.io/address/0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419#readContract
     /// @notice data from ~ 2022 / 04 / 25  19:47 CEST
     //      [ latestRoundData method Response ]
@@ -21,7 +27,7 @@ contract AggregatorMockV3 {
     //      answeredInRound   uint80 :  92233720368547780959
     function latestRoundData()
         external
-        pure
+        view
         returns (
             uint80 roundId,
             int256 answer,
@@ -30,6 +36,6 @@ contract AggregatorMockV3 {
             uint80 answeredInRound
         )
     {
-        return (92233720368547780959, 293059734515, 1650905759, 1650905759, 92233720368547780959);
+        return (92233720368547780959, price, 1650905759, 1650905759, 92233720368547780959);
     }
 }

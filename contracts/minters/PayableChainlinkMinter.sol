@@ -2,11 +2,12 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/interfaces/IERC721Enumerable.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 import '@rari-capital/solmate/src/utils/SafeTransferLib.sol';
 import '../interfaces/Mintable.sol';
 
-contract PayableChainlinkMinter {
+contract PayableChainlinkMinter is Ownable {
     uint8 private constant ETH_DECIMALS = 18;
     uint256 public immutable PRICE;
 
@@ -24,10 +25,10 @@ contract PayableChainlinkMinter {
     }
 
     modifier paysMint(uint256 amount) {
-        (, int256 price, , , ) = AggregatorV3Interface(oracle).latestRoundData();
-        require(price > int256(0), 'LINK_PRICE_NEGATIVE');
+        (, int256 link_usdethPrice, , , ) = AggregatorV3Interface(oracle).latestRoundData();
+        require(link_usdethPrice > int256(0), 'LINK_PRICE_NEGATIVE');
 
-        uint256 mintCost = ((amount * PRICE) * 10**ETH_DECIMALS) / (uint256(price));
+        uint256 mintCost = ((amount * PRICE) * 10**ETH_DECIMALS) / (uint256(link_usdethPrice));
 
         require(mintCost <= msg.value, 'MINT_INSUFFICIENT_VALUE');
         _;
@@ -57,5 +58,13 @@ contract PayableChainlinkMinter {
                 ++i;
             }
         }
+    }
+
+    function withdraw() external virtual onlyOwner {
+        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+    }
+
+    function withdrawERC20(ERC20 token) external onlyOwner {
+        SafeTransferLib.safeTransfer(token, msg.sender, token.balanceOf(address(this)));
     }
 }

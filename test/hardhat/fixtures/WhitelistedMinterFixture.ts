@@ -1,6 +1,6 @@
 import { deployments } from 'hardhat'
 import { generateMerkleTree } from '../../../deploy/merkletree'
-import { WhitelistedMinter__factory } from '../../../typechain-types'
+import { AggregatorMockV3__factory, ERC20Mock__factory, WhitelistedMinter__factory } from '../../../typechain-types'
 import { ERC721Fixture } from './ERC721Fixture'
 
 export const WhitelistedMinterFixture = deployments.createFixture(async () => {
@@ -8,6 +8,8 @@ export const WhitelistedMinterFixture = deployments.createFixture(async () => {
 
   const {
     WhitelistedMinter: { address: whitelistedMinterAddress },
+    ERC20Mock: { address: erc20MockAddress },
+    AggregatorMockV3: { address: aggregatorMockV3Address },
   } = erc721Fixture.fixture
 
   const whitelistedMinter = WhitelistedMinter__factory.connect(whitelistedMinterAddress, erc721Fixture.deployer)
@@ -18,5 +20,8 @@ export const WhitelistedMinterFixture = deployments.createFixture(async () => {
 
   await whitelistedMinter.setRoot(merkleTree.getRoot())
 
-  return { ...erc721Fixture, whitelistedMinter, whitelistedAddresses, merkleTree }
+  const erc20Mock = ERC20Mock__factory.connect(erc20MockAddress, erc721Fixture.deployer)
+  const mockPriceOracle = AggregatorMockV3__factory.connect(aggregatorMockV3Address, erc721Fixture.deployer)
+
+  return { ...erc721Fixture, whitelistedMinter, erc20Mock, mockPriceOracle, whitelistedAddresses, merkleTree }
 })

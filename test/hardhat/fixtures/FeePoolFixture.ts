@@ -1,5 +1,5 @@
 import { deployments } from 'hardhat'
-import { OwnedSplitterV1__factory } from '../../../typechain-types'
+import { ETHRejecetMock__factory, OwnedSplitterV1__factory } from '../../../typechain-types'
 import { ERC721Fixture } from './ERC721Fixture'
 
 export const FeePoolFixture = deployments.createFixture(async ({ deployments, ethers }) => {
@@ -7,9 +7,10 @@ export const FeePoolFixture = deployments.createFixture(async ({ deployments, et
 
   const {
     OwnedSplitterV1: { address: ownedSplitterAddress },
+    ETHRejecetMock: { address: ethRejecterAddress },
   } = erc721Fixture.fixture
 
   const splitter = OwnedSplitterV1__factory.connect(ownedSplitterAddress, erc721Fixture.deployer)
-
-  return { ...erc721Fixture, splitter }
+  const rejecter = ETHRejecetMock__factory.connect(ethRejecterAddress, erc721Fixture.deployer)
+  return { ...erc721Fixture, splitter, rejecter }
 })
