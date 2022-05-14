@@ -5,7 +5,7 @@ import { RaffleFixture } from './fixtures/RaffleFixture'
 const MAX_UINT_96 = BigNumber.from(2).pow(96).sub(1)
 
 const MAX_WORDS = 500
-describe.only('SimpleRafle', () => {
+describe('SimpleRafle', () => {
   describe('request', () => {
     it('rejects if called by non-owner', async () => {
       const { raffle, deployer, alice } = await RaffleFixture()
@@ -30,7 +30,7 @@ describe.only('SimpleRafle', () => {
 
       const tx2 = await coordinator.fulfillRandomWords(requestId, raffle.address).then((tx) => tx.wait())
 
-      const logs = await raffle.queryFilter(raffle.filters.NumbersReceived())
+      const logs = await raffle.queryFilter(raffle.filters.NumbersReceived(), tx2.blockNumber, tx2.blockNumber)
       const [log] = logs
       expect(logs).to.have.length(1)
 
