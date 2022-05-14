@@ -12,11 +12,14 @@ export const NFT_FACET_FEE_POOL_NAME = 'FeePoolFacet'
 export const ERC165_FACET_NAME = 'ERC165Facet'
 export const ERC2891_FACET_NAME = 'ERC2891Facet'
 
+export const SIMPLE_RAFFLE_CONTRACT_NAME = 'SimpleRaffle'
+
 export const MOCK_MINTER_CONTRACT_NAME = 'MockMinter'
 export const MOCK_ERC721_CONTRACT_NAME = 'ERC721Mock'
 export const MOCK_CHAINLINK_ETH_PRICE_FEED = 'AggregatorMockV3'
 export const MOCK_ERC20_CONTRACT_NAME = 'ERC20Mock'
 export const MOCK_ETH_REJECTER = 'ETHRejecetMock'
+export const MOCK_VRF_COORDINATOR = 'VRFCoordinatorV2Mock'
 
 export const OPEN_MINTER_CONTRACT_NAME = 'OpenMinter'
 export const WHITELIST_MINTER_CONTRACT_NAME = 'WhitelistedMinter'

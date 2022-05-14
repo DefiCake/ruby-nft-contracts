@@ -15,7 +15,7 @@ enum FacetCutAction {
   Remove,
 }
 const EMPTY_BYTES = '0x'
-describe.only('DiamondUpgradability', () => {
+describe('DiamondUpgradability', () => {
   let ruby: IRuby
   let diamond: IDiamondCut
   let deployer: SignerWithAddress
