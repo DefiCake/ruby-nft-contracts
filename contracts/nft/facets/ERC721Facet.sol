@@ -35,7 +35,13 @@ contract ERC721Facet is UsingMintRole {
 
     function tokenURI(uint256 tokenId) public view returns (string memory) {
         require(ERC721Lib.Storage()._ownerOf[tokenId] != address(0), 'NOT_MINTED');
-        return string(abi.encodePacked('https://deficake/', Strings.toString(tokenId)));
+
+        string memory prefix = 'https://deficake/';
+        string memory customURI = ERC721Lib.Storage().tokenUri[tokenId];
+
+        if (bytes(customURI).length == 0) return string(abi.encodePacked(prefix, Strings.toString(tokenId)));
+
+        return string(abi.encodePacked(prefix, customURI));
     }
 
     /*//////////////////////////////////////////////////////////////

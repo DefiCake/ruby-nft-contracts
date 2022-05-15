@@ -1,4 +1,5 @@
 import { parseEther } from '@ethersproject/units'
+import { FacetOptions } from 'hardhat-deploy/types'
 
 export const NFT_CONTRACT_NAME = 'Ruby'
 export const ERC20_CONTRACT_NAME = 'RubyToken'
@@ -8,9 +9,17 @@ export const BOOMER_CONTRACT_NAME = 'Boomer'
 export const NFT_FACET_ERC721_NAME = 'ERC721Facet'
 export const NFT_FACET_MINTER_ROLE_NAME = 'MintRoleFacet'
 export const NFT_FACET_FEE_POOL_NAME = 'FeePoolFacet'
+export const NFT_FACET_URI_SETTER_V1_NAME = 'UriSetterFacetV1'
 
 export const ERC165_FACET_NAME = 'ERC165Facet'
 export const ERC2891_FACET_NAME = 'ERC2891Facet'
+
+export const BASE_FACETS: Array<FacetOptions> = [
+  { name: NFT_FACET_ERC721_NAME },
+  { name: NFT_FACET_MINTER_ROLE_NAME },
+  { name: ERC165_FACET_NAME },
+  { name: NFT_FACET_URI_SETTER_V1_NAME },
+]
 
 export const SIMPLE_RAFFLE_CONTRACT_NAME = 'SimpleRaffle'
 

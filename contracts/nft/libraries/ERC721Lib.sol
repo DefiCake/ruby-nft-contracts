@@ -10,6 +10,7 @@ library ERC721Lib {
         mapping(address => uint256) _balanceOf;
         mapping(uint256 => address) getApproved;
         mapping(address => mapping(address => bool)) isApprovedForAll;
+        mapping(uint256 => string) tokenUri;
     }
 
     function Storage() internal pure returns (ERC721Storage storage ds) {

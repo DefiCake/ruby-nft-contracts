@@ -1,6 +1,12 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction, FacetOptions } from 'hardhat-deploy/types'
-import { ERC165_FACET_NAME, NFT_CONTRACT_NAME, NFT_FACET_ERC721_NAME, NFT_FACET_MINTER_ROLE_NAME } from '../constants'
+import {
+  BASE_FACETS,
+  ERC165_FACET_NAME,
+  NFT_CONTRACT_NAME,
+  NFT_FACET_ERC721_NAME,
+  NFT_FACET_MINTER_ROLE_NAME,
+} from '../constants'
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {
@@ -10,12 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const { deployer } = await getNamedAccounts()
 
-  const facets: Array<FacetOptions> = [
-    { name: NFT_FACET_ERC721_NAME },
-    { name: NFT_FACET_MINTER_ROLE_NAME },
-    { name: ERC165_FACET_NAME },
-    // { name: NFT_FACET_FEE_POOL_NAME, args: [splitterAddress] },
-  ]
+  const facets: Array<FacetOptions> = BASE_FACETS
 
   await diamond.deploy(NFT_CONTRACT_NAME, {
     from: deployer,

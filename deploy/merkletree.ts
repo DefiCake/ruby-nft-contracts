@@ -9,3 +9,7 @@ export function generateMerkleTree(addresses: string[]) {
 
   return new MerkleTree(addresses, keccak256, { hashLeaves: true, sortPairs: true })
 }
+
+export function generateGenericMerkleTree(elements: any[]) {
+  return new MerkleTree(elements, keccak256, { hashLeaves: true, sortPairs: true })
+}

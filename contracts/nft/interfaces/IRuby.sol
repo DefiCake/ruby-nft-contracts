@@ -5,5 +5,6 @@ import './IERC721Facet.sol';
 import './IFeePoolFacet.sol';
 import './IMinterRoleFacet.sol';
 import './IERC2891.sol';
+import './IUriSetterFacetV1.sol';
 
-abstract contract IRuby is IERC721Facet, IERC2891, IFeePoolFacet, IMinterRoleFacet {}
+abstract contract IRuby is IERC721Facet, IERC2891, IFeePoolFacet, IMinterRoleFacet, IUriSetterFacetV1 {}

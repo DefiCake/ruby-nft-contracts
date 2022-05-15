@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { DeployFunction, FacetOptions } from 'hardhat-deploy/types'
 import {
+  BASE_FACETS,
   ERC165_FACET_NAME,
   ERC2891_FACET_NAME,
   ERC2891_FEE_SHARE,
@@ -23,10 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { address: splitterAddress } = await getContract(SPLITTER_V1_CONTRACT_NAME)
 
   const facets: Array<FacetOptions> = [
-    { name: NFT_FACET_ERC721_NAME },
-    { name: NFT_FACET_MINTER_ROLE_NAME },
-    { name: ERC165_FACET_NAME },
-
+    ...BASE_FACETS,
     { name: ERC2891_FACET_NAME, args: [splitterAddress, ERC2891_FEE_SHARE] },
     { name: NFT_FACET_FEE_POOL_NAME, args: [splitterAddress] },
   ]

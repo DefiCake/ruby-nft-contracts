@@ -89,6 +89,12 @@ describe('ERC721', () => {
           expect(await ruby.balanceOf(other.address)).to.be.equal('0')
         })
       })
+
+      context('when querying address zero', function () {
+        it('reverts', async function () {
+          await expect(ruby.balanceOf(AddressZero)).to.be.revertedWith('ZERO_ADDRESS')
+        })
+      })
     })
 
     describe('totalSupply', function () {
