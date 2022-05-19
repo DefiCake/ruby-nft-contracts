@@ -25,11 +25,7 @@ contract PayableChainlinkMinter is Ownable {
     }
 
     modifier paysMint(uint256 amount) {
-        (, int256 link_usdethPrice, , , ) = AggregatorV3Interface(oracle).latestRoundData();
-        require(link_usdethPrice > int256(0), 'LINK_PRICE_NEGATIVE');
-
-        uint256 mintCost = ((amount * PRICE) * 10**ETH_DECIMALS) / (uint256(link_usdethPrice));
-
+        uint256 mintCost = getMintCost(amount);
         require(mintCost <= msg.value, 'MINT_INSUFFICIENT_VALUE');
         _;
 
@@ -66,5 +62,12 @@ contract PayableChainlinkMinter is Ownable {
 
     function withdrawERC20(ERC20 token) external onlyOwner {
         SafeTransferLib.safeTransfer(token, msg.sender, token.balanceOf(address(this)));
+    }
+
+    function getMintCost(uint256 amountOfTokensToBuy) public view returns (uint256) {
+        (, int256 link_usdethPrice, , , ) = AggregatorV3Interface(oracle).latestRoundData();
+        require(link_usdethPrice > int256(0), 'LINK_PRICE_NEGATIVE');
+
+        return ((amountOfTokensToBuy * PRICE) * 10**ETH_DECIMALS) / (uint256(link_usdethPrice));
     }
 }
